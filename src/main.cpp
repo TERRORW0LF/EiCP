@@ -15,6 +15,12 @@ int main()
         return -1;
     }
 
+    // Tell glfw which version of OpenGL we're using.
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+
     // Create the window and set it as the currently active window.
     window = glfwCreateWindow(640, 480, "XPBD Cloth simulation", NULL, NULL);
     glfwMakeContextCurrent(window);
