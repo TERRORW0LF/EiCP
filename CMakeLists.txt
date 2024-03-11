@@ -26,6 +26,8 @@ add_executable(XPBDCloth
         src/main.cpp
         src/config.h
         src/glad.c
+        src/cloth_mesh.h
+        src/cloth_mesh.cpp
 )
 
 target_include_directories(XPBDCloth PRIVATE dependencies C:/msys64/mingw64/include)
