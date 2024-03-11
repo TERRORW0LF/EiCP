@@ -1,4 +1,5 @@
 #include "config.h"
+#include "cloth_mesh.h"
 
 // Declare function prototypes to avoid sorting them in code.
 unsigned int make_shader(const std::string &vertex_filepath, const std::string &fragment_filepath);
@@ -42,6 +43,10 @@ int main()
     // Set the background color of the window.
     glClearColor(0.25f, 0.5f, 0.75f, 1.0f);
 
+    // Create the cloth and give it a color.
+    float color[3] = {1.0f, 0.0f, 0.0f};
+    ClothMesh *cloth = new ClothMesh("assets/cloth_1.obj", color);
+
     // Create a shader for the objects in the scene.
     unsigned int shader = make_shader("src/shaders/vertex.txt", "src/shaders/fragment.txt");
 
@@ -57,6 +62,9 @@ int main()
 
         // Use the shader in the new buffer.
         glUseProgram(shader);
+
+        // Draw the cloth onto the screen.
+        cloth->draw();
 
         // Gives the window the new buffer updated with glClear.
         glfwSwapBuffers(window);
