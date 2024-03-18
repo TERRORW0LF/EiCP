@@ -1,5 +1,6 @@
 #include "config.h"
 #include "cloth_mesh.h"
+#include <memory>
 
 #include "GLFW/glfw3.h"
 
@@ -77,8 +78,8 @@ int main()
 
         //update physics here!
 
-        auto vertices = cloth->get_vertex_positions();
-        for (auto& v : vertices) {
+        std::vector<float3> vertices = cloth->get_vertex_positions();
+        for (float3 & v : vertices) {
             v.x += 0.001f;
             v.y += 0.001f;
             v.z += 0.001f;
