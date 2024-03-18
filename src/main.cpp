@@ -45,10 +45,13 @@ int main()
 
     // Create the cloth and give it a color.
     float color[3] = {1.0f, 0.0f, 0.0f};
-    ClothMesh *cloth = new ClothMesh("assets/cloth_1.obj", color);
+    std::unique_ptr<ClothMesh> cloth = std::make_unique<ClothMesh>("../assets/cloth_1.obj", color);
 
     // Create a shader for the objects in the scene.
-    unsigned int shader = make_shader("src/shaders/vertex.txt", "src/shaders/fragment.txt");
+    unsigned int shader = make_shader("../src/shaders/vertex.txt", "../src/shaders/fragment.txt");
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 
     // Window event loop. Runs until the user closes the window.
     while (!glfwWindowShouldClose(window))
@@ -68,6 +71,19 @@ int main()
 
         // Gives the window the new buffer updated with glClear.
         glfwSwapBuffers(window);
+
+
+        //update physics here!
+
+        auto vertices = cloth->get_vertex_positions();
+        for (auto& v : vertices) {
+            v.x += 0.001f;
+            v.y += 0.001f;
+            v.z += 0.001f;
+        }
+        cloth->set_vertex_positions(vertices);
+
+
     }
     // Delete shader program before terminating.
     glDeleteProgram(shader);

@@ -1,4 +1,5 @@
 #include "cloth_mesh.h"
+#include <cassert>
 
 std::pair<std::vector<float>, std::vector<unsigned int>> readObj(const std::string &obj_path);
 
@@ -18,6 +19,18 @@ ClothMesh::ClothMesh(const std::string &cloth_path, float color[3])
         colors.insert(colors.end(), color, color + 3);
     }
 
+
+    assert(vertices.size() % 3 == 0);
+    vertex_positions.reserve(vertices.size() % 3);
+    for (int i = 0; i < vertices.size(); i += 3) {
+        float3 v;
+        v.x = vertices[i];
+        v.y = vertices[i + 1];
+        v.z = vertices[i + 2];
+        vertex_positions.push_back(v);
+    }
+    vertex_positions_invalid = false;
+
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
@@ -25,7 +38,7 @@ ClothMesh::ClothMesh(const std::string &cloth_path, float color[3])
     glGenBuffers(2, VBOs.data());
 
     glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertex_positions.size() * sizeof(float3), vertex_positions.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
 
@@ -37,10 +50,18 @@ ClothMesh::ClothMesh(const std::string &cloth_path, float color[3])
     glGenBuffers(1, &EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, faces.size() * sizeof(int), faces.data(), GL_STATIC_DRAW);
+
 }
 
 void ClothMesh::draw()
 {
+    if (vertex_positions_invalid) {
+        glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
+        glBufferData(GL_ARRAY_BUFFER, vertex_positions.size() * sizeof(float3), vertex_positions.data(), GL_STATIC_DRAW);
+
+        vertex_positions_invalid = false;
+    }
+
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, element_count, GL_UNSIGNED_INT, 0);
 }
@@ -50,6 +71,22 @@ ClothMesh::~ClothMesh()
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(2, VBOs.data());
     glDeleteBuffers(1, &EBO);
+}
+
+std::vector<float3> ClothMesh::get_vertex_positions() const
+{
+    return vertex_positions;
+}
+
+void ClothMesh::set_vertex_positions(const std::vector<float3>& new_vertex_positions)
+{
+    if (new_vertex_positions.size() != vertex_positions.size()) {
+        std::cout << "error!" << std::endl;
+        std::exit(1);
+    }
+       
+    vertex_positions_invalid = true;
+    vertex_positions = new_vertex_positions;
 }
 
 std::pair<std::vector<float>, std::vector<unsigned int>> readObj(const std::string &obj_path)
