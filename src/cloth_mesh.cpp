@@ -42,38 +42,8 @@ ClothMesh::ClothMesh(const std::string &cloth_path, float color[3])
         t.data[2] = faces[i + 2];
         triangles.push_back(t);
     }
-
     std::vector<float3> tempNormals;
-    tempNormals.resize(vertex_positions.size(), {0.f, 0.f, 0.f});
-    for (const uint3 &t : triangles)
-    {
-        const float3 &v1 = vertex_positions[t.data[0]];
-        const float3 &v2 = vertex_positions[t.data[1]];
-        const float3 &v3 = vertex_positions[t.data[2]];
-
-        // compute triangle normal
-
-        float3 e1 = v1 - v2;
-
-        float3 e2 = v1 - v3;
-
-        // compute cross product
-        float3 normal = e1.cross_product(e2);
-
-        // compute magnitude
-        float magnitude = normal.length();
-        normal /= magnitude;
-
-        tempNormals[t.data[0]] += normal;
-        tempNormals[t.data[1]] += normal;
-        tempNormals[t.data[2]] += normal;
-    }
-
-    for (float3 &n : tempNormals)
-    {
-        float l = n.length();
-        n /= l;
-    }
+    compute_normals(tempNormals);
 
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
@@ -108,6 +78,8 @@ void ClothMesh::draw()
         glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
         glBufferData(GL_ARRAY_BUFFER, vertex_positions.size() * sizeof(float3), vertex_positions.data(), GL_STATIC_DRAW);
 
+        compute_and_store_normals();
+
         vertex_positions_invalid = false;
     }
 
@@ -120,6 +92,47 @@ ClothMesh::~ClothMesh()
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(3, VBOs.data());
     glDeleteBuffers(1, &EBO);
+}
+
+void ClothMesh::compute_and_store_normals()
+{
+    std::vector<float3> tempNormals;
+    compute_normals(tempNormals);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[2]);
+    glBufferData(GL_ARRAY_BUFFER, tempNormals.size() * sizeof(float3), tempNormals.data(), GL_STATIC_DRAW);
+}
+
+void ClothMesh::compute_normals(std::vector<float3>& tempNormals)
+{
+    tempNormals.resize(vertex_positions.size(), { 0.f, 0.f, 0.f });
+    for (const uint3& t : triangles)
+    {
+        const float3& v1 = vertex_positions[t.data[0]];
+        const float3& v2 = vertex_positions[t.data[1]];
+        const float3& v3 = vertex_positions[t.data[2]];
+
+        // compute triangle normal
+        float3 e1 = v1 - v2;
+        float3 e2 = v1 - v3;
+
+        // compute cross product
+        float3 normal = e1.cross_product(e2);
+
+        // compute magnitude
+        float magnitude = normal.length();
+        normal /= magnitude;
+
+        tempNormals[t.data[0]] += normal;
+        tempNormals[t.data[1]] += normal;
+        tempNormals[t.data[2]] += normal;
+    }
+
+    for (float3& n : tempNormals)
+    {
+        float l = n.length();
+        n /= l;
+    }
 }
 
 std::vector<float3> ClothMesh::get_vertex_positions() const

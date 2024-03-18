@@ -16,7 +16,10 @@ public:
 	RealVector<type, dim> inline operator/(type scalar) const;
 
 	void inline operator/=(type v);
+	void inline operator*=(type scalar);
 	void inline operator+=(const RealVector<type, dim>& other);
+
+	bool operator==(const RealVector<type, dim>& other) const;
 
 	type operator*(const RealVector<type, dim>& other) const;
 
@@ -77,12 +80,26 @@ inline void RealVector<type, dim>::operator/=(type v)
 }
 
 template<typename type, unsigned int dim>
+inline void RealVector<type, dim>::operator*=(type scalar)
+{
+	for (int i = 0; i < dim; i++) {
+		data[i] *= scalar;
+	}
+}
+
+template<typename type, unsigned int dim>
 inline void RealVector<type, dim>::operator+=(const RealVector<type, dim>& other)
 {
 	for (int i = 0; i < dim; i++) {
 		data[i] += other.data[i];
 	}
 
+}
+
+template<typename type, unsigned int dim>
+inline bool RealVector<type, dim>::operator==(const RealVector<type, dim>& other) const
+{
+	return data == other.data;
 }
 
 template<typename type, unsigned int dim>
