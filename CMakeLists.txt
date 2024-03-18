@@ -15,7 +15,6 @@ project(
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set(glfw3_DIR "C:/Users/Arthu/Downloads/vcpkg/vcpkg/packages/glfw3_x64-windows/share/glfw3")
 
 
 # Find packages go here.

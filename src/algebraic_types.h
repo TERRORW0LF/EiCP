@@ -12,6 +12,8 @@ public:
 public:
 	RealVector<type, dim> inline operator+(const RealVector<type, dim>& other) const;
 	RealVector<type, dim> inline operator-(const RealVector<type, dim>& other) const;
+	RealVector<type, dim> inline operator*(type scalar) const;
+	RealVector<type, dim> inline operator/(type scalar) const;
 
 	void inline operator/=(type v);
 	void inline operator+=(const RealVector<type, dim>& other);
@@ -44,6 +46,26 @@ inline RealVector<type, dim> RealVector<type, dim>::operator-(const RealVector<t
 		res.data[i] = data[i] - other.data[i];
 	}
 	return res;
+}
+
+template<typename type, unsigned int dim>
+inline RealVector<type, dim> RealVector<type, dim>::operator*(type scalar) const
+{
+	RealVector ret;
+	for (int i = 0; i < dim; i++) {
+		ret.data[i] = data[i] * scalar;
+	}
+	return ret;
+}
+
+template<typename type, unsigned int dim>
+inline RealVector<type, dim> RealVector<type, dim>::operator/(type scalar) const
+{
+	RealVector ret;
+	for (int i = 0; i < dim; i++) {
+		ret.data[i] = data[i] / scalar;
+	}
+	return ret;
 }
 
 template<typename type, unsigned int dim>
