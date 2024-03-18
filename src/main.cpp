@@ -60,10 +60,12 @@ int main()
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+    // Determine the model matrix for the cloth rotation and translation.
     vec3 cloth_position = {-0.5f, -0.5f, 0.0f};
     vec3 cloth_rotation = {0.0f, 0.0f, 0.0f};
     mat4 model_matrix = model(cloth_position, cloth_rotation, 1.0f);
 
+    // Set the camera position and calculate the view transform.
     vec3 camera_pos = {0.1f, 0.1f, 0.2f};
     vec3 camera_target = {0.0f, 0.0f, 0.0f};
     mat4 view_matrix = view(camera_pos, camera_target);
@@ -80,6 +82,8 @@ int main()
 
         // Use the shader in the new buffer.
         glUseProgram(shader);
+
+        // Set uniform shader variables.
         glUniformMatrix4fv(3, 1, GL_FALSE, model_matrix.entries);
         glUniformMatrix4fv(4, 1, GL_FALSE, view_matrix.entries);
         glUniform3f(5, -1.0, 0.0, 5.0);
@@ -92,18 +96,11 @@ int main()
         // Gives the window the new buffer updated with glClear.
         glfwSwapBuffers(window);
 
+        // Currently fails.
         // update physics here!
         // clothPhysics.update();
 
         // std::cout << cloth.get_vertex_positions()[0].data[0] << std::endl;
-
-        // std::vector<float3> vertices = cloth.get_vertex_positions();
-        // for (float3 & v : vertices) {
-        //     v.data[0] += 0.001f;
-        //     v.data[1] += 0.001f;
-        //     v.data[2] += 0.001f;
-        // }
-        // cloth.set_vertex_positions(vertices);
     }
     // Delete shader program before terminating.
     glDeleteProgram(shader);

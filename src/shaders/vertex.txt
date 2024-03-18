@@ -1,20 +1,27 @@
 #version 460 core
 
+// Input vectors. Taken from the VBO vectors.
+// location corresponds to the AttribArrayIndex.
 layout(location = 0) in vec3 vertexPos;
 layout(location = 1) in vec3 vertexColor;
 layout(location = 2) in vec3 normal;
 
+// Matrixes describing the current model and view
+// transformations. Set once per frame.
 layout(location = 3) uniform mat4 model;
 layout(location = 4) uniform mat4 view;
 
+// Output variables for the next shader step (fragment shader).
 out vec3 fragmentColor;
 out vec3 fragmentPos;
 out vec3 fragmentNorm;
 
 void main()
 {
+    // Determine fragment position in world space.
     fragmentPos = vec3(model * vec4(vertexPos, 1.0));
     fragmentNorm = normal;
     fragmentColor = vertexColor;
+    // Set the render position of the vertex in camera space.
     gl_Position = view * model * vec4(vertexPos, 1.0);
 }
