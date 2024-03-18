@@ -5,6 +5,7 @@
 #include "GLFW/glfw3.h"
 #include "algebraic_types.h"
 #include "physics_engine.h"
+#include "linear_algebra.h"
 
 // Declare function prototypes to avoid sorting them in code.
 unsigned int make_shader(const std::string &vertex_filepath, const std::string &fragment_filepath);
@@ -55,6 +56,9 @@ int main()
     // Create a shader for the objects in the scene.
     unsigned int shader = make_shader("src/shaders/vertex.txt", "src/shaders/fragment.txt");
 
+    vec3 cloth_position = {-0.5f, -0.5f, 0.0f};
+    mat4 model = transform(cloth_position);
+
     // Window event loop. Runs until the user closes the window.
     while (!glfwWindowShouldClose(window))
     {
@@ -67,9 +71,10 @@ int main()
 
         // Use the shader in the new buffer.
         glUseProgram(shader);
-        glUniform3f(3, 0.0, 0.0, 5.0);
-        glUniform3f(4, 1.0, 1.0, 1.0);
-        glUniform1f(5, 0.05);
+        glUniformMatrix4fv(3, 1, GL_FALSE, model.entries);
+        glUniform3f(4, -1.0, 0.0, 5.0);
+        glUniform3f(5, 1.0, 1.0, 1.0);
+        glUniform1f(6, 0.05);
 
         // Draw the cloth onto the screen.
         cloth->draw();
