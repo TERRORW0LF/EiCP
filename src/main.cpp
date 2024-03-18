@@ -1,6 +1,7 @@
 #include "config.h"
 #include "cloth_mesh.h"
 #include <memory>
+#include "physics_engine.h"
 
 // Declare function prototypes to avoid sorting them in code.
 unsigned int make_shader(const std::string &vertex_filepath, const std::string &fragment_filepath);
@@ -46,7 +47,7 @@ int main()
 
     // Create the cloth and give it a color.
     float color[3] = {1.0f, 0.0f, 0.0f};
-    std::unique_ptr<ClothMesh> cloth = std::make_unique<ClothMesh>("../assets/cloth_1.obj", color);
+    std::shared_ptr<ClothMesh> cloth = std::make_shared<ClothMesh>("../assets/cloth_1.obj", color);
 
     // Create a shader for the objects in the scene.
     unsigned int shader = make_shader("../src/shaders/vertex.txt", "../src/shaders/fragment.txt");
@@ -76,13 +77,16 @@ int main()
 
         //update physics here!
 
-        std::vector<float3> vertices = cloth->get_vertex_positions();
-        for (float3 & v : vertices) {
-            v.x += 0.001f;
-            v.y += 0.001f;
-            v.z += 0.001f;
-        }
-        cloth->set_vertex_positions(vertices);
+        PhysicsEngine test(cloth, {-4.0f, -10.0f, 30.0f});
+        test.update();
+
+        //std::vector<float3> vertices = cloth->get_vertex_positions();
+        //for (float3 & v : vertices) {
+        //    v.x += 0.001f;
+        //    v.y += 0.001f;
+        //    v.z += 0.001f;
+        //}
+        //cloth->set_vertex_positions(vertices);
 
 
     }
