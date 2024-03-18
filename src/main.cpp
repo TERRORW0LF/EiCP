@@ -1,6 +1,8 @@
 #include "config.h"
 #include "cloth_mesh.h"
 
+#include "GLFW/glfw3.h"
+
 // Declare function prototypes to avoid sorting them in code.
 unsigned int make_shader(const std::string &vertex_filepath, const std::string &fragment_filepath);
 unsigned int make_module(const std::string &filepath, unsigned int module_type);
@@ -50,7 +52,7 @@ int main()
     // Create a shader for the objects in the scene.
     unsigned int shader = make_shader("../src/shaders/vertex.txt", "../src/shaders/fragment.txt");
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 
     // Window event loop. Runs until the user closes the window.
@@ -83,6 +85,7 @@ int main()
         }
         cloth->set_vertex_positions(vertices);
 
+        
 
     }
     // Delete shader program before terminating.

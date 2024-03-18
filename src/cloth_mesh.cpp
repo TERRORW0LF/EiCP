@@ -31,6 +31,18 @@ ClothMesh::ClothMesh(const std::string &cloth_path, float color[3])
     }
     vertex_positions_invalid = false;
 
+    assert(faces.size() % 3 == 0);
+    triangles.reserve(faces.size() % 3);
+    for (int i = 0; i < faces.size(); i += 3) {
+        uint3 t;
+        t.x = faces[i];
+        t.y = faces[i+1];
+        t.z = faces[i+2];
+        triangles.push_back(t);
+    }
+
+
+
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
@@ -49,7 +61,7 @@ ClothMesh::ClothMesh(const std::string &cloth_path, float color[3])
 
     glGenBuffers(1, &EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, faces.size() * sizeof(int), faces.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, triangles.size() * sizeof(uint3), triangles.data(), GL_STATIC_DRAW);
 
 }
 
@@ -76,6 +88,16 @@ ClothMesh::~ClothMesh()
 std::vector<float3> ClothMesh::get_vertex_positions() const
 {
     return vertex_positions;
+}
+
+std::vector<uint3> ClothMesh::get_triangles() const
+{
+    return triangles;
+}
+
+const std::vector<uint3>& ClothMesh::get_triangles_ref() const
+{
+    return triangles;
 }
 
 void ClothMesh::set_vertex_positions(const std::vector<float3>& new_vertex_positions)
