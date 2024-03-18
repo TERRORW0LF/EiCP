@@ -4,13 +4,16 @@ layout(location = 0) in vec3 vertexPos;
 layout(location = 1) in vec3 vertexColor;
 layout(location = 2) in vec3 normal;
 
+layout(location = 3) uniform mat4 model;
+
 out vec3 fragmentColor;
+out vec3 fragmentPos;
+out vec3 fragmentNorm;
 
 void main()
 {
-	vec3 lightDir = vec3(1.0,1.0,0.0);
-	float diff = max(dot(normal, lightDir), 0.0);
-
-    gl_Position = vec4(vertexPos, 1.0);
-    fragmentColor = 0.5 * diff * vertexColor + 0.5 * vertexColor;
+    fragmentPos = vec3(model * vec4(vertexPos, 1.0));
+    fragmentNorm = normal;
+    fragmentColor = vertexColor;
+    gl_Position = model * vec4(vertexPos, 1.0);
 }

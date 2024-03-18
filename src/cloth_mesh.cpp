@@ -20,10 +20,10 @@ ClothMesh::ClothMesh(const std::string &cloth_path, float color[3])
         colors.insert(colors.end(), color, color + 3);
     }
 
-
     assert(vertices.size() % 3 == 0);
     vertex_positions.reserve(vertices.size() % 3);
-    for (int i = 0; i < vertices.size(); i += 3) {
+    for (int i = 0; i < vertices.size(); i += 3)
+    {
         float3 v;
         v.data[0] = vertices[i];
         v.data[1] = vertices[i + 1];
@@ -34,31 +34,33 @@ ClothMesh::ClothMesh(const std::string &cloth_path, float color[3])
 
     assert(faces.size() % 3 == 0);
     triangles.reserve(faces.size() % 3);
-    for (int i = 0; i < faces.size(); i += 3) {
+    for (int i = 0; i < faces.size(); i += 3)
+    {
         uint3 t;
         t.data[0] = faces[i];
-        t.data[1] = faces[i+1];
-        t.data[2] = faces[i+2];
+        t.data[1] = faces[i + 1];
+        t.data[2] = faces[i + 2];
         triangles.push_back(t);
     }
 
     std::vector<float3> tempNormals;
-    tempNormals.resize(vertex_positions.size(), { 0.f,0.f,0.f });
-    for (const uint3& t : triangles) {
-        const float3& v1 = vertex_positions[t.data[0]];
-        const float3& v2 = vertex_positions[t.data[1]];
-        const float3& v3 = vertex_positions[t.data[2]];
+    tempNormals.resize(vertex_positions.size(), {0.f, 0.f, 0.f});
+    for (const uint3 &t : triangles)
+    {
+        const float3 &v1 = vertex_positions[t.data[0]];
+        const float3 &v2 = vertex_positions[t.data[1]];
+        const float3 &v3 = vertex_positions[t.data[2]];
 
-        //compute triangle normal
-        
+        // compute triangle normal
+
         float3 e1 = v1 - v2;
 
-        float3 e2 = v1- v3;
+        float3 e2 = v1 - v3;
 
-        //compute cross product
+        // compute cross product
         float3 normal = e1.cross_product(e2);
 
-        //compute magnitude
+        // compute magnitude
         float magnitude = normal.length();
         normal /= magnitude;
 
@@ -67,11 +69,11 @@ ClothMesh::ClothMesh(const std::string &cloth_path, float color[3])
         tempNormals[t.data[2]] += normal;
     }
 
-    for (float3& n : tempNormals) {
+    for (float3 &n : tempNormals)
+    {
         float l = n.length();
         n /= l;
     }
-
 
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
@@ -91,18 +93,18 @@ ClothMesh::ClothMesh(const std::string &cloth_path, float color[3])
 
     glBindBuffer(GL_ARRAY_BUFFER, VBOs[2]);
     glBufferData(GL_ARRAY_BUFFER, tempNormals.size() * sizeof(float3), tempNormals.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(2);
 
     glGenBuffers(1, &EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, triangles.size() * sizeof(uint3), triangles.data(), GL_STATIC_DRAW);
-
 }
 
 void ClothMesh::draw()
 {
-    if (vertex_positions_invalid) {
+    if (vertex_positions_invalid)
+    {
         glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
         glBufferData(GL_ARRAY_BUFFER, vertex_positions.size() * sizeof(float3), vertex_positions.data(), GL_STATIC_DRAW);
 
@@ -116,7 +118,7 @@ void ClothMesh::draw()
 ClothMesh::~ClothMesh()
 {
     glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(2, VBOs.data());
+    glDeleteBuffers(3, VBOs.data());
     glDeleteBuffers(1, &EBO);
 }
 
@@ -130,18 +132,19 @@ std::vector<uint3> ClothMesh::get_triangles() const
     return triangles;
 }
 
-const std::vector<uint3>& ClothMesh::get_triangles_ref() const
+const std::vector<uint3> &ClothMesh::get_triangles_ref() const
 {
     return triangles;
 }
 
-void ClothMesh::set_vertex_positions(const std::vector<float3>& new_vertex_positions)
+void ClothMesh::set_vertex_positions(const std::vector<float3> &new_vertex_positions)
 {
-    if (new_vertex_positions.size() != vertex_positions.size()) {
+    if (new_vertex_positions.size() != vertex_positions.size())
+    {
         std::cout << "error!" << std::endl;
         std::exit(1);
     }
-       
+
     vertex_positions_invalid = true;
     vertex_positions = new_vertex_positions;
 }

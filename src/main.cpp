@@ -5,6 +5,7 @@
 #include "GLFW/glfw3.h"
 #include "algebraic_types.h"
 #include "physics_engine.h"
+#include "linear_algebra.h"
 
 // Declare function prototypes to avoid sorting them in code.
 unsigned int make_shader(const std::string &vertex_filepath, const std::string &fragment_filepath);
@@ -50,6 +51,7 @@ int main()
 
     // Create the cloth and give it a color.
     float color[3] = {1.0f, 0.0f, 0.0f};
+  
     ClothMesh cloth("../assets/cloth_1.obj", color);
     PhysicsEngine clothPhysics(&cloth, { 0.000000001f,0.f,0 });
 
@@ -58,7 +60,8 @@ int main()
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-
+    vec3 cloth_position = {-0.5f, -0.5f, 0.0f};
+    mat4 model = transform(cloth_position);
 
     // Window event loop. Runs until the user closes the window.
     while (!glfwWindowShouldClose(window))
@@ -72,13 +75,16 @@ int main()
 
         // Use the shader in the new buffer.
         glUseProgram(shader);
+        glUniformMatrix4fv(3, 1, GL_FALSE, model.entries);
+        glUniform3f(4, -1.0, 0.0, 5.0);
+        glUniform3f(5, 1.0, 1.0, 1.0);
+        glUniform1f(6, 0.05);
 
         // Draw the cloth onto the screen.
         cloth.draw();
 
         // Gives the window the new buffer updated with glClear.
         glfwSwapBuffers(window);
-
 
         //update physics here!
         clothPhysics.update();

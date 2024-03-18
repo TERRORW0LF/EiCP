@@ -1,10 +1,9 @@
 #pragma once
 
-#include "primitives.h"
 #include "cloth_mesh.h"
 #include <vector>
 #include <memory>
-
+#include "algebraic_types.h"
 
 
 class PhysicsEngine

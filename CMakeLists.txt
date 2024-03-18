@@ -31,6 +31,8 @@ add_executable(XPBDCloth
         src/cloth_mesh.cpp
         src/physics_engine.h
         src/physics_engine.cpp
+        src/linear_algebra.h
+        src/linear_algebra.cpp
 	src/primitives.h
 	src/algebraic_types.h
 	src/algebraic_types.cpp
