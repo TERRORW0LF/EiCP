@@ -13,6 +13,7 @@ unsigned int make_module(const std::string &filepath, unsigned int module_type);
 
 // Most of the window and OpenGL setup is based upon GetIntoGameDev's OpenGL tutorial
 // at https://www.youtube.com/watch?list=PLn3eTxaOtL2PHxN8EHf-ktAcN-sGETKfw
+// and the LearnOpenGL website at https://learnopengl.com/
 int main()
 {
     // The current and only window used in this application.
