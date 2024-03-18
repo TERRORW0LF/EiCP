@@ -53,7 +53,13 @@ int main()
     float color[3] = {1.0f, 0.0f, 0.0f};
   
     ClothMesh cloth("../assets/cloth_1.obj", color);
-    PhysicsEngine clothPhysics(&cloth, { 0.000000001f,0.f,0 });
+
+    float3 gravity;
+    gravity.data[0] = 0.f;
+    gravity.data[1] = -0.0000001f;
+    gravity.data[2] = 0.f;
+
+    PhysicsEngine clothPhysics(&cloth, gravity);
 
     // Create a shader for the objects in the scene.
     unsigned int shader = make_shader("../src/shaders/vertex.txt", "../src/shaders/fragment.txt");
@@ -86,10 +92,10 @@ int main()
         // Gives the window the new buffer updated with glClear.
         glfwSwapBuffers(window);
 
+        //std::cout << cloth.get_vertex_positions()[0].data[0] << std::endl;
         //update physics here!
         clothPhysics.update();
 
-        std::cout << cloth.get_vertex_positions()[0].data[0] << std::endl;
 
         //std::vector<float3> vertices = cloth.get_vertex_positions();
         //for (float3 & v : vertices) {

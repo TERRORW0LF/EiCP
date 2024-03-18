@@ -24,6 +24,9 @@ private:
     mutable bool vertex_positions_invalid = true;
     std::vector<float3> vertex_positions;
     std::vector<uint3> triangles;
+
+    void compute_and_store_normals();
+    void compute_normals(std::vector<float3>& out);
 public:
 
     std::vector<float3> get_vertex_positions() const;
