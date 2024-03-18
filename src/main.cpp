@@ -50,19 +50,10 @@ int main()
 
     // Create the cloth and give it a color.
     float color[3] = {1.0f, 0.0f, 0.0f};
-    std::shared_ptr<ClothMesh> cloth = std::make_shared<ClothMesh>("../assets/cloth_1.obj", color);
+    std::shared_ptr<ClothMesh> cloth = std::make_shared<ClothMesh>("assets/cloth_1.obj", color);
 
     // Create a shader for the objects in the scene.
-    unsigned int shader = make_shader("../src/shaders/vertex.txt", "../src/shaders/fragment.txt");
-
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-    RealVector<int, 5> test;
-    RealVector<int, 5> test2;
-
-    test + test2;
-
-
+    unsigned int shader = make_shader("src/shaders/vertex.txt", "src/shaders/fragment.txt");
 
     // Window event loop. Runs until the user closes the window.
     while (!glfwWindowShouldClose(window))
@@ -76,6 +67,9 @@ int main()
 
         // Use the shader in the new buffer.
         glUseProgram(shader);
+        glUniform3f(3, 0.0, 0.0, 5.0);
+        glUniform3f(4, 1.0, 1.0, 1.0);
+        glUniform1f(5, 0.05);
 
         // Draw the cloth onto the screen.
         cloth->draw();
@@ -83,20 +77,17 @@ int main()
         // Gives the window the new buffer updated with glClear.
         glfwSwapBuffers(window);
 
+        // Update physics here!
+        // PhysicsEngine physics_engine(cloth, {0.0f, -1000.0001f, 0.0f});
+        // physics_engine.update();
 
-        //update physics here!
-        PhysicsEngine physics_engine(cloth, {0.0f, -1000.0001f, 0.0f});
-        physics_engine.update();
-
-        //std::vector<float3> vertices = cloth->get_vertex_positions();
-        //for (float3 & v : vertices) {
-        //    v.data[0] += 0.001f;
-        //    v.data[1] += 0.001f;
-        //    v.data[2] += 0.001f;
-        //}
-        //cloth->set_vertex_positions(vertices);
-
-
+        // std::vector<float3> vertices = cloth->get_vertex_positions();
+        // for (float3 & v : vertices) {
+        //     v.data[0] += 0.001f;
+        //     v.data[1] += 0.001f;
+        //     v.data[2] += 0.001f;
+        // }
+        // cloth->set_vertex_positions(vertices);
     }
     // Delete shader program before terminating.
     glDeleteProgram(shader);
