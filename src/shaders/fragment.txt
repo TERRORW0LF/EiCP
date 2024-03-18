@@ -1,14 +1,17 @@
 #version 460 core
 
+// Inputs from the vertex shader.
 in vec3 fragmentColor;
 in vec3 fragmentPos;
 in vec3 fragmentNorm;
 
+// Pixel color output.
 out vec4 screenColor;
 
-layout(location = 4) uniform vec3 lightPos;
-layout(location = 5) uniform vec3 lightColor;
-layout(location = 6) uniform float ambientStrength;
+// Inputs for lighting. Set once per frame.
+layout(location = 5) uniform vec3 lightPos;
+layout(location = 6) uniform vec3 lightColor;
+layout(location = 7) uniform float ambientStrength;
 
 void main()
 {
