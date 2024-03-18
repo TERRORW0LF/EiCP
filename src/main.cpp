@@ -61,7 +61,12 @@ int main()
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     vec3 cloth_position = {-0.5f, -0.5f, 0.0f};
-    mat4 model = transform(cloth_position);
+    vec3 cloth_rotation = {0.0f, 0.0f, 0.0f};
+    mat4 model_matrix = model(cloth_position, cloth_rotation, 1.0f);
+
+    vec3 camera_pos = {0.1f, 0.1f, 0.2f};
+    vec3 camera_target = {0.0f, 0.0f, 0.0f};
+    mat4 view_matrix = view(camera_pos, camera_target);
 
     // Window event loop. Runs until the user closes the window.
     while (!glfwWindowShouldClose(window))
@@ -75,10 +80,11 @@ int main()
 
         // Use the shader in the new buffer.
         glUseProgram(shader);
-        glUniformMatrix4fv(3, 1, GL_FALSE, model.entries);
-        glUniform3f(4, -1.0, 0.0, 5.0);
-        glUniform3f(5, 1.0, 1.0, 1.0);
-        glUniform1f(6, 0.05);
+        glUniformMatrix4fv(3, 1, GL_FALSE, model_matrix.entries);
+        glUniformMatrix4fv(4, 1, GL_FALSE, view_matrix.entries);
+        glUniform3f(5, -1.0, 0.0, 5.0);
+        glUniform3f(6, 1.0, 1.0, 1.0);
+        glUniform1f(7, 0.05);
 
         // Draw the cloth onto the screen.
         cloth.draw();
