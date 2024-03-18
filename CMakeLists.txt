@@ -29,6 +29,8 @@ add_executable(XPBDCloth
         src/cloth_mesh.h
         src/cloth_mesh.cpp
 	src/primitives.h
+	src/algebraic_types.h
+	src/algebraic_types.cpp
 )
 
 target_include_directories(XPBDCloth PRIVATE dependencies C:/msys64/mingw64/include)

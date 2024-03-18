@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "GLFW/glfw3.h"
+#include "algebraic_types.h"
 
 // Declare function prototypes to avoid sorting them in code.
 unsigned int make_shader(const std::string &vertex_filepath, const std::string &fragment_filepath);
@@ -55,6 +56,12 @@ int main()
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+    RealVector<int, 5> test;
+    RealVector<int, 5> test2;
+
+    test + test2;
+
+
 
     // Window event loop. Runs until the user closes the window.
     while (!glfwWindowShouldClose(window))
@@ -80,13 +87,12 @@ int main()
 
         std::vector<float3> vertices = cloth->get_vertex_positions();
         for (float3 & v : vertices) {
-            v.x += 0.001f;
-            v.y += 0.001f;
-            v.z += 0.001f;
+            v.data[0] += 0.001f;
+            v.data[1] += 0.001f;
+            v.data[2] += 0.001f;
         }
         cloth->set_vertex_positions(vertices);
 
-        
 
     }
     // Delete shader program before terminating.
