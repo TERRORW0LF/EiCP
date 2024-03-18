@@ -4,7 +4,7 @@ PhysicsEngine::PhysicsEngine(std::shared_ptr<ClothMesh> cloth, float3 gravity)
 {
     this->cloth = cloth;
     this->gravity = gravity;
-    this->velocity = std::vector<float3>(cloth->get_vertex_positions().size(), {0.1f, 0.000f, 0.000f});
+    this->velocity = std::vector<float3>(cloth->get_vertex_positions().size(), {0.001f, 0.000f, 0.000f});
     this->old_position = std::vector<float3>(cloth->get_vertex_positions().size(), {0.0f, 0.0f, 0.0f});
     this->substeps = 1;
     this->delta_time = 1.0f;
@@ -14,11 +14,6 @@ void PhysicsEngine::update()
 {
     //this->delta_time = delta_time;
     for (int i = 0; i < substeps; i++) {
-        //std::cout << "updating step " << velocity[0].x << std::endl;
-        std::cout << "updating step " << old_position[0].data[0] << std::endl;
-        old_position[0].data[0] = 5.0f;
-        std::cout << "updating step " << old_position[0].data[0] << std::endl;
-
         update_step();
     }
 

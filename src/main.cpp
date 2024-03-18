@@ -85,14 +85,16 @@ int main()
 
 
         //update physics here!
+        PhysicsEngine physics_engine(cloth, {0.0f, -1000.0001f, 0.0f});
+        physics_engine.update();
 
-        std::vector<float3> vertices = cloth->get_vertex_positions();
-        for (float3 & v : vertices) {
-            v.data[0] += 0.001f;
-            v.data[1] += 0.001f;
-            v.data[2] += 0.001f;
-        }
-        cloth->set_vertex_positions(vertices);
+        //std::vector<float3> vertices = cloth->get_vertex_positions();
+        //for (float3 & v : vertices) {
+        //    v.data[0] += 0.001f;
+        //    v.data[1] += 0.001f;
+        //    v.data[2] += 0.001f;
+        //}
+        //cloth->set_vertex_positions(vertices);
 
 
     }
