@@ -51,10 +51,14 @@ int main()
 
     // Create the cloth and give it a color.
     float color[3] = {1.0f, 0.0f, 0.0f};
-    std::shared_ptr<ClothMesh> cloth = std::make_shared<ClothMesh>("assets/cloth_1.obj", color);
+  
+    ClothMesh cloth("../assets/cloth_1.obj", color);
+    PhysicsEngine clothPhysics(&cloth, { 0.000000001f,0.f,0 });
 
     // Create a shader for the objects in the scene.
-    unsigned int shader = make_shader("src/shaders/vertex.txt", "src/shaders/fragment.txt");
+    unsigned int shader = make_shader("../src/shaders/vertex.txt", "../src/shaders/fragment.txt");
+
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     vec3 cloth_position = {-0.5f, -0.5f, 0.0f};
     mat4 model = transform(cloth_position);
@@ -77,22 +81,25 @@ int main()
         glUniform1f(6, 0.05);
 
         // Draw the cloth onto the screen.
-        cloth->draw();
+        cloth.draw();
 
         // Gives the window the new buffer updated with glClear.
         glfwSwapBuffers(window);
 
-        // Update physics here!
-        // PhysicsEngine physics_engine(cloth, {0.0f, -1000.0001f, 0.0f});
-        // physics_engine.update();
+        //update physics here!
+        clothPhysics.update();
 
-        // std::vector<float3> vertices = cloth->get_vertex_positions();
-        // for (float3 & v : vertices) {
-        //     v.data[0] += 0.001f;
-        //     v.data[1] += 0.001f;
-        //     v.data[2] += 0.001f;
-        // }
-        // cloth->set_vertex_positions(vertices);
+        std::cout << cloth.get_vertex_positions()[0].data[0] << std::endl;
+
+        //std::vector<float3> vertices = cloth.get_vertex_positions();
+        //for (float3 & v : vertices) {
+        //    v.data[0] += 0.001f;
+        //    v.data[1] += 0.001f;
+        //    v.data[2] += 0.001f;
+        //}
+        //cloth.set_vertex_positions(vertices);
+
+
     }
     // Delete shader program before terminating.
     glDeleteProgram(shader);

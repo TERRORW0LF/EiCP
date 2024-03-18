@@ -9,12 +9,12 @@
 class PhysicsEngine
 {
     public:
-        PhysicsEngine(std::shared_ptr<ClothMesh> cloth, float3 gravity);
+        PhysicsEngine(ClothMesh* cloth, float3 gravity);
         void update();
         //~PhysicsEngine();
 
     private:
-        std::shared_ptr<ClothMesh> cloth;
+        ClothMesh* cloth;
         float3 gravity;
         //float3 wind = {0.0f, 0.0f, 0.0f};
         std::vector<float3> velocity;
@@ -22,6 +22,8 @@ class PhysicsEngine
         int substeps;
         float delta_time;
         void update_step();
+
+        clock_t last_update=0;
 
     public:
 
