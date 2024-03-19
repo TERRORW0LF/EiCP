@@ -88,9 +88,6 @@ void XPBDWindow::initialize_members()
 void XPBDWindow::update_window()
 {
 
-
-
-
     // Poll all events for this frame.
     glfwPollEvents();
 
