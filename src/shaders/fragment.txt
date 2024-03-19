@@ -9,9 +9,9 @@ in vec3 fragmentNorm;
 out vec4 screenColor;
 
 // Inputs for lighting. Set once per frame.
-layout(location = 5) uniform vec3 lightPos;
-layout(location = 6) uniform vec3 lightColor;
-layout(location = 7) uniform float ambientStrength;
+layout(location = 6) uniform vec3 lightPos;
+layout(location = 7) uniform vec3 lightColor;
+layout(location = 8) uniform float ambientStrength;
 
 void main()
 {

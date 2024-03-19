@@ -10,6 +10,7 @@ layout(location = 2) in vec3 normal;
 // transformations. Set once per frame.
 layout(location = 3) uniform mat4 model;
 layout(location = 4) uniform mat4 view;
+layout(location = 5) uniform mat4 projection;
 
 // Output variables for the next shader step (fragment shader).
 out vec3 fragmentColor;
@@ -23,5 +24,5 @@ void main()
     fragmentNorm = normal;
     fragmentColor = vertexColor;
     // Set the render position of the vertex in camera space.
-    gl_Position = view * model * vec4(vertexPos, 1.0);
+    gl_Position = projection * view * model * vec4(vertexPos, 1.0);
 }

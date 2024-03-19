@@ -18,6 +18,7 @@ mat4 rotate(vec3 rotation);
 mat4 scale(float scale);
 mat4 model(vec3 translation, vec3 rotation, float scale);
 mat4 view(vec3 from, vec3 to);
+mat4 projection(float fov, float aspect_ratio, float near, float far);
 
 float dot(vec3 u, vec3 v);
 vec3 normalize(vec3 v);

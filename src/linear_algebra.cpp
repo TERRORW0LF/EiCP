@@ -221,6 +221,32 @@ mat4 view(vec3 from, vec3 to)
     return matrix;
 }
 
+mat4 projection(float fov, float aspect_ratio, float near, float far)
+{
+    // Convert to radians and half it since the visible range is [-theta, theta].
+    fov = fov * PI / 360;
+    float tan = tanf(fov);
+
+    // Flip sign bc things are only visible in the negative z direction.
+    near = -near;
+    far = -far;
+
+    // Fill matrix with 0s.
+    mat4 matrix;
+    for (int i = 0; i < 16; i++)
+    {
+        matrix.entries[i] = 0.0f;
+    }
+
+    matrix.entries[0] = 1.0f / (aspect_ratio * tan);
+    matrix.entries[5] = 1.0f / tan;
+    matrix.entries[10] = -(near + far) / (near - far);
+    matrix.entries[11] = -1.0f;
+    matrix.entries[14] = 2 * near * far / (near - far);
+
+    return matrix;
+}
+
 /**
  * @param u The first input vector.
  * @param v The second input vector.
@@ -242,6 +268,13 @@ vec3 normalize(vec3 v)
     vec3 w;
 
     float length = sqrtf(dot(v, v));
+
+    // If v = 0 then return v to avoid returning nan.
+    if (length == 0)
+    {
+        return v;
+    }
+
     w.entries[0] = v.entries[0] / length;
     w.entries[1] = v.entries[1] / length;
     w.entries[2] = v.entries[2] / length;

@@ -39,4 +39,5 @@ private:
 	vec3 camera_pos;
 	vec3 camera_target;
 	mat4 view_matrix;
+	mat4 projection_matrix;
 };

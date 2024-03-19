@@ -49,7 +49,8 @@ XPBDWindow::~XPBDWindow()
 
 void XPBDWindow::handle_input(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
-    switch(key) {
+    switch (key)
+    {
     case GLFW_KEY_RIGHT:
         camera_pos.entries[1] += 0.02;
         view_matrix = view(camera_pos, camera_target);
@@ -59,14 +60,14 @@ void XPBDWindow::handle_input(GLFWwindow *window, int key, int scancode, int act
         view_matrix = view(camera_pos, camera_target);
         break;
     case GLFW_KEY_P:
-        if (action == GLFW_RELEASE) {
+        if (action == GLFW_RELEASE)
+        {
             simulate = !simulate;
         }
         break;
 
-
     default:
-        std::cout << "key " << key <<" action "<<action << std::endl;
+        std::cout << "key " << key << " action " << action << std::endl;
     }
 }
 
@@ -92,14 +93,20 @@ void XPBDWindow::initialize_members()
     shader = std::make_unique<Shader>("src/shaders/vertex.txt", "src/shaders/fragment.txt");
 
     // Determine the model matrix for the cloth rotation and translation.
-    cloth_position = {-0.5f, -0.5f, 0.0f};
+    cloth_position = {-0.5f, -0.5f, -10.0f};
     cloth_rotation = {0.0f, 0.0f, 0.0f};
     model_matrix = model(cloth_position, cloth_rotation, 1.0f);
 
     // Set the camera position and calculate the view transform.
-    camera_pos = {0.1f, 1.0f, 0.0f};
+    camera_pos = {0.0f, 0.0f, 1.0f};
     camera_target = {0.0f, 0.0f, 0.0f};
     view_matrix = view(camera_pos, camera_target);
+
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+    float aspect = width / (float)height;
+    // Create a projection matrix with set fov, and near and far distance limits.
+    projection_matrix = projection(103.0f, aspect, 0.5f, 200.0f);
 }
 
 void XPBDWindow::update_window()
@@ -118,9 +125,10 @@ void XPBDWindow::update_window()
     // Set uniform shader variables.
     glUniformMatrix4fv(3, 1, GL_FALSE, model_matrix.entries);
     glUniformMatrix4fv(4, 1, GL_FALSE, view_matrix.entries);
-    glUniform3f(5, -1.0, 0.0, 5.0); // lightPosition
-    glUniform3f(6, 1.0, 1.0, 1.0);  // lightColor
-    glUniform1f(7, 0.05);           // ambientStrength
+    glUniformMatrix4fv(5, 1, GL_FALSE, projection_matrix.entries);
+    glUniform3f(6, -1.0, 0.0, 5.0); // lightPosition
+    glUniform3f(7, 1.0, 1.0, 1.0);  // lightColor
+    glUniform1f(8, 0.05);           // ambientStrength
 
     // Draw the cloth onto the screen.
     cloth->draw();
@@ -128,7 +136,8 @@ void XPBDWindow::update_window()
     // Gives the window the new buffer updated with glClear.
     glfwSwapBuffers(window);
 
-    if (simulate) {
+    if (simulate)
+    {
         // Implements the physics engine.
         clothPhysics->update();
     }
