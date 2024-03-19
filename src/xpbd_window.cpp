@@ -1,5 +1,12 @@
 #include "xpbd_window.h"
 
+/**
+ * This function creates a glfw window and sets up the XPBD cloth simulation.
+ * This class handles rendering and window inputs.
+ *
+ * @returns A window with the simulation.
+ * @brief Creates a window and initializes it with our simulation.
+ */
 XPBDWindow::XPBDWindow()
 {
     // The current and only window used in this application.
@@ -42,11 +49,25 @@ XPBDWindow::XPBDWindow()
     initialize_members();
 }
 
+/**
+ * @brief Closes the window.
+ */
 XPBDWindow::~XPBDWindow()
 {
     glfwTerminate();
 }
 
+/**
+ * Handel keyboard inputs and translate them into player movement.
+ *
+ * @param window The glfw window associated with this simulation window.
+ * @param key The key associated with the event.
+ * @param scancode The scancode of the key associated with the event.
+ * @param action The event being triggered.
+ * @param mods The modifier keys being pressed.
+ *
+ * @brief Handles keyboard inputs.
+ */
 void XPBDWindow::handle_input(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
     switch (key)
@@ -71,6 +92,9 @@ void XPBDWindow::handle_input(GLFWwindow *window, int key, int scancode, int act
     }
 }
 
+/**
+ * @brief Initializes the static setup for OpenGL.
+ */
 void XPBDWindow::initialize_members()
 {
     // Enable face culling. This will assume a counter
@@ -114,6 +138,9 @@ void XPBDWindow::initialize_members()
     projection_matrix = projection(103.0f, aspect, 0.5f, 200.0f);
 }
 
+/**
+ * @brief Update the scene with the current changes.
+ */
 void XPBDWindow::update_window()
 {
 
@@ -150,6 +177,9 @@ void XPBDWindow::update_window()
     }
 }
 
+/**
+ * @brief Start the event loop to update the window.
+ */
 void XPBDWindow::enter_update_loop()
 {
     while (!glfwWindowShouldClose(window))

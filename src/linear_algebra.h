@@ -1,13 +1,20 @@
 #pragma once
 #include <cmath>
 
+// Approximation of pi.
 #define PI 3.1415962
 
+/**
+ * @brief Holds a 4x4 matrix in column major order.
+ */
 struct mat4
 {
     float entries[16];
 };
 
+/**
+ * @brief Holds a vector of length 3.
+ */
 struct vec3
 {
     float entries[3];

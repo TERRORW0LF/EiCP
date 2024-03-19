@@ -2,7 +2,7 @@
 #include <cassert>
 #include "algebraic_types.h"
 
-std::pair<std::vector<float>, std::vector<unsigned int>> readObj(const std::string &obj_path);
+std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::string &obj_path);
 
 /**
  * @brief Construct a new Cloth Mesh:: Cloth Mesh object
@@ -12,7 +12,7 @@ std::pair<std::vector<float>, std::vector<unsigned int>> readObj(const std::stri
  */
 ClothMesh::ClothMesh(const std::string &cloth_path, float color[3])
 {
-    auto mesh = readObj(cloth_path);
+    auto mesh = read_obj(cloth_path);
     std::vector<float> vertices = mesh.first;
     std::vector<unsigned int> faces = mesh.second;
 
@@ -51,27 +51,33 @@ ClothMesh::ClothMesh(const std::string &cloth_path, float color[3])
     std::vector<float3> temp_normals;
     compute_normals(temp_normals);
 
+    // Holds vertex arrays and their attributes.
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
+    // Holds a vertex array with its attributes.
     VBOs.resize(3);
     glGenBuffers(3, VBOs.data());
 
+    // Vertices
     glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
     glBufferData(GL_ARRAY_BUFFER, vertex_positions.size() * sizeof(float3), vertex_positions.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
 
+    // Colors
     glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
     glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(float), colors.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(1);
 
+    // Vertice normals
     glBindBuffer(GL_ARRAY_BUFFER, VBOs[2]);
     glBufferData(GL_ARRAY_BUFFER, temp_normals.size() * sizeof(float3), temp_normals.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(2);
 
+    // Faces buffer. Determines which of the vertices form a triangle.
     glGenBuffers(1, &EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, triangles.size() * sizeof(uint3), triangles.data(), GL_STATIC_DRAW);
@@ -206,12 +212,12 @@ void ClothMesh::set_vertex_positions(const std::vector<float3> &new_vertex_posit
 }
 
 /**
- * @brief Read an obj file and return the vertices and faces
+ * @brief Read an obj file and return the vertices and faces.
  *
- * @param obj_path Path to the obj file
- * @return std::pair<std::vector<float>, std::vector<unsigned int>>
+ * @param obj_path The relative path to the obj file.
+ * @returns A pair consisting of the vertices and faces vector.
  */
-std::pair<std::vector<float>, std::vector<unsigned int>> readObj(const std::string &obj_path)
+std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::string &obj_path)
 {
     std::vector<float> vertices;
     std::vector<unsigned int> faces;
@@ -228,26 +234,29 @@ std::pair<std::vector<float>, std::vector<unsigned int>> readObj(const std::stri
     }
 
     // Read file and convert it into a char array.
+    // Get a line
     while (std::getline(file, line))
     {
+        // Split line by spaces
         std::stringstream line_stream(line);
         std::string prefix;
         float values[3];
-        while (line_stream >> prefix)
+        line_stream >> prefix;
+        // check prefix
+        if (prefix == "v")
         {
-            if (prefix == "v")
-            {
-                line_stream >> values[0] >> values[1] >> values[2];
-                vertices.insert(vertices.end(), values, values + 3);
-            }
-            else if (prefix == "f")
-            {
-                line_stream >> values[0] >> values[1] >> values[2];
-                values[0] -= 1;
-                values[1] -= 1;
-                values[2] -= 1;
-                faces.insert(faces.end(), values, values + 3);
-            }
+            // Read a vertix
+            line_stream >> values[0] >> values[1] >> values[2];
+            vertices.insert(vertices.end(), values, values + 3);
+        }
+        else if (prefix == "f")
+        {
+            // read a face. Convert to 0 based array.
+            line_stream >> values[0] >> values[1] >> values[2];
+            values[0] -= 1;
+            values[1] -= 1;
+            values[2] -= 1;
+            faces.insert(faces.end(), values, values + 3);
         }
     }
 
