@@ -103,20 +103,9 @@ int main()
         // Gives the window the new buffer updated with glClear.
         glfwSwapBuffers(window);
 
-        //std::cout << cloth.get_vertex_positions()[0].data[0] << std::endl;
-        //update physics here!
+        // Implements the physics engine.
         clothPhysics.update();
 
-
-        //std::vector<float3> vertices = cloth.get_vertex_positions();
-        //for (float3 & v : vertices) {
-        //    v.data[0] += 0.001f;
-        //    v.data[1] += 0.001f;
-        //    v.data[2] += 0.001f;
-        //}
-        //cloth.set_vertex_positions(vertices);
-
-        // std::cout << cloth.get_vertex_positions()[0].data[0] << std::endl;
     }
     // Delete shader program before terminating.
     glDeleteProgram(shader);

@@ -11,12 +11,11 @@ class PhysicsEngine
     public:
         PhysicsEngine(ClothMesh* cloth, float3 gravity);
         void update();
-        //~PhysicsEngine();
 
     private:
         ClothMesh* cloth;
         float3 gravity;
-        //float3 wind = {0.0f, 0.0f, 0.0f};
+        //float3 wind = {0.0f, 0.0f, 0.0f}; // for future use 
         std::vector<float3> velocity;
         std::vector<float3> old_position;
         int substeps;

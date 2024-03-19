@@ -4,6 +4,12 @@
 
 std::pair<std::vector<float>, std::vector<unsigned int>> readObj(const std::string &obj_path);
 
+/**
+ * @brief Construct a new Cloth Mesh:: Cloth Mesh object
+ * 
+ * @param cloth_path external path to the cloth obj file
+ * @param color color of the cloth
+ */
 ClothMesh::ClothMesh(const std::string &cloth_path, float color[3])
 {
     auto mesh = readObj(cloth_path);
@@ -71,6 +77,10 @@ ClothMesh::ClothMesh(const std::string &cloth_path, float color[3])
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, triangles.size() * sizeof(uint3), triangles.data(), GL_STATIC_DRAW);
 }
 
+/**
+ * @brief Generate and draw the cloth mesh
+ * 
+ */
 void ClothMesh::draw()
 {
     if (vertex_positions_invalid)
@@ -87,6 +97,10 @@ void ClothMesh::draw()
     glDrawElements(GL_TRIANGLES, element_count, GL_UNSIGNED_INT, 0);
 }
 
+/**
+ * @brief Destroy the Cloth Mesh:: Cloth Mesh object
+ * 
+ */
 ClothMesh::~ClothMesh()
 {
     glDeleteVertexArrays(1, &VAO);
@@ -94,6 +108,10 @@ ClothMesh::~ClothMesh()
     glDeleteBuffers(1, &EBO);
 }
 
+/**
+ * @brief Computes and stores normals for the cloth mesh
+ * 
+ */
 void ClothMesh::compute_and_store_normals()
 {
     std::vector<float3> tempNormals;
@@ -103,6 +121,11 @@ void ClothMesh::compute_and_store_normals()
     glBufferData(GL_ARRAY_BUFFER, tempNormals.size() * sizeof(float3), tempNormals.data(), GL_STATIC_DRAW);
 }
 
+/**
+ * @brief Computes normals for the cloth mesh
+ * 
+ * @param tempNormals [float3] vector to store the normals
+ */
 void ClothMesh::compute_normals(std::vector<float3>& tempNormals)
 {
     tempNormals.resize(vertex_positions.size(), { 0.f, 0.f, 0.f });
@@ -135,21 +158,41 @@ void ClothMesh::compute_normals(std::vector<float3>& tempNormals)
     }
 }
 
+/**
+ * @brief Helper function to get the vertex positions
+ * 
+ * @return std::vector<float3> 
+ */
 std::vector<float3> ClothMesh::get_vertex_positions() const
 {
     return vertex_positions;
 }
 
+/**
+ * @brief Helper function to get the triangles
+ * 
+ * @return std::vector<uint3> 
+ */
 std::vector<uint3> ClothMesh::get_triangles() const
 {
     return triangles;
 }
 
+/**
+ * @brief Helper function to get the vertex positions
+ * 
+ * @return const std::vector<float3>& 
+ */
 const std::vector<uint3> &ClothMesh::get_triangles_ref() const
 {
     return triangles;
 }
 
+/**
+ * @brief Set the vertex positions
+ * 
+ * @param new_vertex_positions 
+ */
 void ClothMesh::set_vertex_positions(const std::vector<float3> &new_vertex_positions)
 {
     if (new_vertex_positions.size() != vertex_positions.size())
@@ -162,6 +205,12 @@ void ClothMesh::set_vertex_positions(const std::vector<float3> &new_vertex_posit
     vertex_positions = new_vertex_positions;
 }
 
+/**
+ * @brief Read an obj file and return the vertices and faces
+ * 
+ * @param obj_path Path to the obj file
+ * @return std::pair<std::vector<float>, std::vector<unsigned int>> 
+ */	
 std::pair<std::vector<float>, std::vector<unsigned int>> readObj(const std::string &obj_path)
 {
     std::vector<float> vertices;

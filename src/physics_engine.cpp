@@ -2,7 +2,12 @@
 #include <time.h>
 #include <unordered_set>
 
-
+/**
+ * @brief Construct a new Physics Engine:: Physics Engine object
+ * 
+ * @param cloth Pointer to cloth which is to be simulated
+ * @param _gravity Gravitational force to be simulated
+ */
 PhysicsEngine::PhysicsEngine(ClothMesh* cloth, float3 _gravity) :
     cloth(cloth)
 {
@@ -13,6 +18,10 @@ PhysicsEngine::PhysicsEngine(ClothMesh* cloth, float3 _gravity) :
     delta_time = 1.0f;
 }
 
+/**
+ * @brief Facade function to update the physics engine
+ * 
+ */
 void PhysicsEngine::update()
 {
     clock_t current_time = clock();
@@ -23,20 +32,19 @@ void PhysicsEngine::update()
 
     delta_time = current_time - last_update;
     last_update = current_time;
-    //delta_time = 100.f;
 
     for (int i = 0; i < substeps; i++) {
-        //std::cout << "updating step " << velocity[0].x << std::endl;
-        //std::cout << "updating step " << old_position[0].data[0] << std::endl;
-        //old_position[0].data[0] = 5.0f;
-        //std::cout << "updating step " << old_position[0].data[0] << std::endl;
-
 
         update_step();
     }
 
 }
 
+/**
+ * @brief Internal logic to update the physics engine
+ * In this function, the physics engine is updated by a single step. This function is called by the update function.
+ * Here, the physics engine updates the position of the cloth vertices based on the velocity and gravity. Afterwards, the physics engine applies constraints to the cloth vertices to simulate the cloth's behavior.
+ */
 void PhysicsEngine::update_step()
 {
     float time_counter = ((float)delta_time) / substeps;
@@ -55,10 +63,10 @@ void PhysicsEngine::update_step()
 
     }
     
-    //solve the constraints
-
+    //Simulation Constraints
 
     //Constraint 2: Distance constraint
+    //The distant constraint is a simple spring force between each pair of connected vertices. It allows the cloth to stretch and compress, but not to bend.
 
     //iterate over triangles
     //store processed edges in a set
@@ -110,12 +118,11 @@ void PhysicsEngine::update_step()
     }
 
     //Constraint 1: top left and top right must stay in place
+    //This constraint is a simple position constraint that keeps the top left and top right vertices in place. Hence, the cloth will not fall down and we can see the effect of the other constraints.
     unsigned int last = vertex_positions.size() - 1;
     vertex_positions[last] = old_position[last];
 
-
-    //update velocity
-    //std::vector<float3> vertex_positions = cloth->get_vertex_positions();
+    //Update the velocity of each vertex by comparing the new position with the old position.
     for (int vertex_counter = 0; vertex_counter < vertex_positions.size(); vertex_counter++) {
         velocity[vertex_counter] = (vertex_positions[vertex_counter] - old_position[vertex_counter]) / time_counter;
     }
