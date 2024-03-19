@@ -48,8 +48,8 @@ ClothMesh::ClothMesh(const std::string &cloth_path, float color[3])
         t.data[2] = faces[i + 2];
         triangles.push_back(t);
     }
-    std::vector<float3> tempNormals;
-    compute_normals(tempNormals);
+    std::vector<float3> temp_normals;
+    compute_normals(temp_normals);
 
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
@@ -68,7 +68,7 @@ ClothMesh::ClothMesh(const std::string &cloth_path, float color[3])
     glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBOs[2]);
-    glBufferData(GL_ARRAY_BUFFER, tempNormals.size() * sizeof(float3), tempNormals.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, temp_normals.size() * sizeof(float3), temp_normals.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(2);
 
@@ -114,21 +114,21 @@ ClothMesh::~ClothMesh()
  */
 void ClothMesh::compute_and_store_normals()
 {
-    std::vector<float3> tempNormals;
-    compute_normals(tempNormals);
+    std::vector<float3> temp_normals;
+    compute_normals(temp_normals);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBOs[2]);
-    glBufferData(GL_ARRAY_BUFFER, tempNormals.size() * sizeof(float3), tempNormals.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, temp_normals.size() * sizeof(float3), temp_normals.data(), GL_STATIC_DRAW);
 }
 
 /**
  * @brief Computes normals for the cloth mesh
  *
- * @param tempNormals [float3] vector to store the normals
+ * @param temp_normals [float3] vector to store the normals
  */
-void ClothMesh::compute_normals(std::vector<float3> &tempNormals)
+void ClothMesh::compute_normals(std::vector<float3> &temp_normals)
 {
-    tempNormals.resize(vertex_positions.size(), {0.f, 0.f, 0.f});
+    temp_normals.resize(vertex_positions.size(), {0.f, 0.f, 0.f});
     for (const uint3 &t : triangles)
     {
         const float3 &v1 = vertex_positions[t.data[0]];
@@ -146,12 +146,12 @@ void ClothMesh::compute_normals(std::vector<float3> &tempNormals)
         float magnitude = normal.length();
         normal /= magnitude;
 
-        tempNormals[t.data[0]] += normal;
-        tempNormals[t.data[1]] += normal;
-        tempNormals[t.data[2]] += normal;
+        temp_normals[t.data[0]] += normal;
+        temp_normals[t.data[1]] += normal;
+        temp_normals[t.data[2]] += normal;
     }
 
-    for (float3 &n : tempNormals)
+    for (float3 &n : temp_normals)
     {
         float l = n.length();
         n /= l;

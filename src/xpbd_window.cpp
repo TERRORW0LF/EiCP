@@ -91,7 +91,7 @@ void XPBDWindow::initialize_members()
     gravity.data[1] = -0.00001f;
     gravity.data[2] = 0.f;
 
-    clothPhysics = std::make_unique<PhysicsEngine>(cloth.get(), gravity);
+    cloth_physics = std::make_unique<PhysicsEngine>(cloth.get(), gravity);
     simulate = false;
 
     // Create a shader for the objects in the scene.
@@ -144,7 +144,7 @@ void XPBDWindow::update_window()
     if (simulate)
     {
         // Implements the physics engine.
-        clothPhysics->update();
+        cloth_physics->update();
     }
 }
 

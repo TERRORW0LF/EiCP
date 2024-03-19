@@ -95,10 +95,10 @@ void PhysicsEngine::update_step()
         {
             unsigned int v1 = triangle.data[i];
             unsigned int v2 = triangle.data[(i + 1) % 3];
-            RealVector<unsigned int, 2> edgeIndex;
-            edgeIndex.data[0] = v1;
-            edgeIndex.data[1] = v2;
-            if (processed_edges.contains(edgeIndex))
+            RealVector<unsigned int, 2> edge_index;
+            edge_index.data[0] = v1;
+            edge_index.data[1] = v2;
+            if (processed_edges.contains(edge_index))
                 continue;
 
             float3 x1 = vertex_positions[v1];
@@ -117,7 +117,7 @@ void PhysicsEngine::update_step()
             vertex_positions[v1] += delta_x1;
             vertex_positions[v2] += delta_x2;
 
-            processed_edges.insert(edgeIndex);
+            processed_edges.insert(edge_index);
         }
     }
 

@@ -34,10 +34,10 @@ unsigned int Shader::make_shader(const std::string &vertex_filepath, const std::
     glGetShaderiv(shader, GL_LINK_STATUS, &success);
     if (!success)
     {
-        char errorLog[1024];
-        glGetProgramInfoLog(shader, 1024, NULL, errorLog);
+        char error_log[1024];
+        glGetProgramInfoLog(shader, 1024, NULL, error_log);
         std::cout << "Shader linking error:\n"
-                  << errorLog << std::endl;
+                  << error_log << std::endl;
     }
 
     // Delete individual shader modules as we don't need them after linking.
@@ -51,7 +51,7 @@ unsigned int Shader::make_module(const std::string &filepath, unsigned int modul
 {
     // Setup streams for reading shader module file.
     std::ifstream file;
-    std::stringstream bufferedLines;
+    std::stringstream buffered_lines;
     std::string line;
 
     // Try to open the shader file. Print warning if that failed.
@@ -64,29 +64,29 @@ unsigned int Shader::make_module(const std::string &filepath, unsigned int modul
     // Read file and convert it into a char array.
     while (std::getline(file, line))
     {
-        bufferedLines << line << "\n";
+        buffered_lines << line << "\n";
     }
 
-    std::string shaderSource = bufferedLines.str();
-    const char *shaderSrc = shaderSource.c_str();
+    std::string shader_source = buffered_lines.str();
+    const char *shader_src = shader_source.c_str();
     file.close();
 
     // Compile shader module
-    unsigned int shaderModule = glCreateShader(module_type);
-    glShaderSource(shaderModule, 1, &shaderSrc, NULL);
-    glCompileShader(shaderModule);
+    unsigned int shader_module = glCreateShader(module_type);
+    glShaderSource(shader_module, 1, &shader_src, NULL);
+    glCompileShader(shader_module);
 
     // Check compilation status and print error if compilation failed.
-    // This might throw a segfault if errorLog is longer than 1024 chars.
+    // This might throw a segfault if error_log is longer than 1024 chars.
     int success;
-    glGetShaderiv(shaderModule, GL_COMPILE_STATUS, &success);
+    glGetShaderiv(shader_module, GL_COMPILE_STATUS, &success);
     if (!success)
     {
-        char errorLog[1024];
-        glGetShaderInfoLog(shaderModule, 1024, NULL, errorLog);
+        char error_log[1024];
+        glGetShaderInfoLog(shader_module, 1024, NULL, error_log);
         std::cout << "Shader Module compilation error:\n"
-                  << errorLog << std::endl;
+                  << error_log << std::endl;
     }
 
-    return shaderModule;
+    return shader_module;
 }

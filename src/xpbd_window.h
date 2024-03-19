@@ -27,7 +27,7 @@ public:
 	// current members:
 private:
 	std::unique_ptr<ClothMesh> cloth;
-	std::unique_ptr<PhysicsEngine> clothPhysics;
+	std::unique_ptr<PhysicsEngine> cloth_physics;
 	std::unique_ptr<Shader> shader;
 
 	bool simulate;
