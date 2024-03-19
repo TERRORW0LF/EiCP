@@ -1,3 +1,4 @@
+#pragma once
 #include <cmath>
 
 #define PI 3.1415962
