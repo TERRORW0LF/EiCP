@@ -9,6 +9,8 @@ As long as `XPBDCloth.exe` and `glfw3.dll` in the build directory are in the sam
 directory you can start the application without further modifications.
 
 ## Development setup
+All .obj files you load in must specify their face vertices in counterclockwise order.
+
 ### Windows
 The `CMakeLists.txt` assumes you have installed MingW / [MSYS2](https://www.msys2.org/#installation)
 with the standard gcc toolchain, as well as glfw 3.4, cmake and ninja.

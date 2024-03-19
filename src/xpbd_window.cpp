@@ -84,7 +84,7 @@ void XPBDWindow::initialize_members()
     // Create the cloth and give it a color.
     float color[3] = {1.0f, 0.0f, 0.0f};
 
-    cloth = std::make_unique<ClothMesh>("assets/cube.obj", color);
+    cloth = std::make_unique<ClothMesh>("assets/cloth_1.obj", color);
 
     float3 gravity;
     gravity.data[0] = 0.f;
@@ -98,12 +98,12 @@ void XPBDWindow::initialize_members()
     shader = std::make_unique<Shader>("src/shaders/vertex.txt", "src/shaders/fragment.txt");
 
     // Determine the model matrix for the cloth rotation and translation.
-    position = {0.0f, 0.0f, 0.0f};
+    position = {-0.5f, -0.5f, 0.0f};
     rotation = {0.0f, 0.0f, 0.0f};
     model_matrix = model(position, rotation, 1.0f);
 
     // Set the camera position and calculate the view transform.
-    camera_pos = {-1.0f, 1.0f, 1.0f};
+    camera_pos = {0.5f, -0.25f, 1.0f};
     camera_target = {0.0f, 0.0f, 0.0f};
     view_matrix = view(camera_pos, camera_target);
 
@@ -131,9 +131,11 @@ void XPBDWindow::update_window()
     glUniformMatrix4fv(3, 1, GL_FALSE, model_matrix.entries);
     glUniformMatrix4fv(4, 1, GL_FALSE, view_matrix.entries);
     glUniformMatrix4fv(5, 1, GL_FALSE, projection_matrix.entries);
-    glUniform3f(6, -5.0f, 5.0f, 5.0f); // lightPosition
-    glUniform3f(7, 1.0f, 1.0f, 1.0f);  // lightColor
-    glUniform1f(8, 0.05f);             // ambientStrength
+    glUniform3fv(6, 1, camera_pos.entries);
+    glUniform3f(7, -5.0f, 5.0f, 5.0f); // light_pos
+    glUniform3f(8, 1.0f, 1.0f, 1.0f);  // light_color
+    glUniform1f(9, 0.05f);             // ambient_strength
+    glUniform1f(10, 0.8f);             // specular_strength
 
     // Draw the cloth onto the screen.
     cloth->draw();
