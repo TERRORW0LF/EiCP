@@ -18,6 +18,7 @@ public:
 	void inline operator/=(type v);
 	void inline operator*=(type scalar);
 	void inline operator+=(const RealVector<type, dim>& other);
+	void inline operator-=(const RealVector<type, dim>& other);
 
 	bool operator==(const RealVector<type, dim>& other) const;
 
@@ -93,7 +94,14 @@ inline void RealVector<type, dim>::operator+=(const RealVector<type, dim>& other
 	for (int i = 0; i < dim; i++) {
 		data[i] += other.data[i];
 	}
+}
 
+template<typename type, unsigned int dim>
+inline void RealVector<type, dim>::operator-=(const RealVector<type, dim>& other)
+{
+	for (int i = 0; i < dim; i++) {
+		data[i] -= other.data[i];
+	}
 }
 
 template<typename type, unsigned int dim>
@@ -128,3 +136,4 @@ inline RealVector<type, 3> RealVector<type, dim>::cross_product(const RealVector
 
 typedef RealVector<float, 3> float3;
 typedef RealVector<unsigned int, 3> uint3;
+typedef RealVector<int, 3> int3;

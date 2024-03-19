@@ -1,6 +1,7 @@
 #include "physics_engine.h"
 #include <time.h>
 #include <unordered_set>
+#include "spatial_hash_structure.h"
 
 /**
  * @brief Construct a new Physics Engine:: Physics Engine object
@@ -14,7 +15,7 @@ PhysicsEngine::PhysicsEngine(ClothMesh* cloth, float3 _gravity) :
     gravity = _gravity;
     velocity = std::vector<float3>(cloth->get_vertex_positions().size(), { 0.f, 0.f, 0.f });
     old_position = std::vector<float3>(cloth->get_vertex_positions().size(), { 0.0f, 0.0f, 0.0f });
-    substeps = 1;
+    substeps = 10;
     delta_time = 1.0f;
 }
 
@@ -31,6 +32,7 @@ void PhysicsEngine::update()
     }
 
     delta_time = current_time - last_update;
+    delta_time = 10.f;
     last_update = current_time;
 
     for (int i = 0; i < substeps; i++) {
@@ -49,6 +51,9 @@ void PhysicsEngine::update_step()
 {
     float time_counter = ((float)delta_time) / substeps;
     std::vector<float3> vertex_positions = cloth->get_vertex_positions();//TODO move this out of the ministep
+
+    SpatialHashStructure structure(vertex_positions, 0.01f, 2 * vertex_positions.size());
+
     for (int vertex_counter = 0; vertex_counter < vertex_positions.size(); vertex_counter++) {
 
         //update velocity
@@ -65,12 +70,11 @@ void PhysicsEngine::update_step()
     
     //Simulation Constraints
 
-    //Constraint 2: Distance constraint
-    //The distant constraint is a simple spring force between each pair of connected vertices. It allows the cloth to stretch and compress, but not to bend.
+    //Constraint: Distance constraint
+    //The distance constraint is a simple spring force between each pair of connected vertices. It allows the cloth to stretch and compress, but not to bend.
 
     //iterate over triangles
     //store processed edges in a set
-
     //https://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-class-type-as-the-key
     struct KeyHasher
     {
@@ -117,10 +121,60 @@ void PhysicsEngine::update_step()
         }
     }
 
-    //Constraint 1: top left and top right must stay in place
+
+
+
+
+
+
+
+    //Constraint: Self collission
+    float particle_radius = 0.05f;
+    //iterate over vertices
+    //iterate over neighboring cells
+    //iterate over vertices in that cell
+    //if they are too close to each other -> push them apart
+    for (int v_i = 0; v_i < vertex_positions.size();v_i++) {
+        auto& v_p = vertex_positions[v_i];
+        auto neighbor_cells = structure.compute_neighbor_cells(v_p);
+        for (int n : neighbor_cells) {
+            auto [first, last] = structure.get_particle_range_in_cell(n);
+            for (auto neighbor_particle = first; neighbor_particle < last; neighbor_particle++) {
+                auto neighbor_particle_index = structure.get_particles_arr()[neighbor_particle];
+                auto& neighbor_particle_position = vertex_positions[neighbor_particle_index];
+
+
+                auto v_p_minus_neighbor_particle_position = v_p - neighbor_particle_position;
+                auto v_p_minus_neighbor_particle_position_length = v_p_minus_neighbor_particle_position.length();
+                if (v_p_minus_neighbor_particle_position_length > 2 * particle_radius)
+                    continue;
+                if (v_i == neighbor_particle_index)
+                    continue;
+
+                //particles are too close!
+                //do some computation to push them apart!
+
+                //normalize
+                v_p_minus_neighbor_particle_position /= v_p_minus_neighbor_particle_position_length;
+
+                float length_to_push_apart = 2 * particle_radius - v_p_minus_neighbor_particle_position_length;
+
+
+                v_p += (v_p_minus_neighbor_particle_position * (0.5 * length_to_push_apart));
+                neighbor_particle_position -= (v_p_minus_neighbor_particle_position * (0.5 * length_to_push_apart));
+            }
+        }
+    }
+
+
+
+    //Constraint: top left and top right must stay in place
     //This constraint is a simple position constraint that keeps the top left and top right vertices in place. Hence, the cloth will not fall down and we can see the effect of the other constraints.
     unsigned int last = vertex_positions.size() - 1;
+    last = 0;
     vertex_positions[last] = old_position[last];
+
+
 
     //Update the velocity of each vertex by comparing the new position with the old position.
     for (int vertex_counter = 0; vertex_counter < vertex_positions.size(); vertex_counter++) {

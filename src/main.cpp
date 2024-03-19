@@ -56,19 +56,19 @@ int main()
     ClothMesh cloth("../assets/cloth_1.obj", color);
 
     float3 gravity;
-    gravity.data[0] = 0.f;
-    gravity.data[1] = -0.0000001f;
+    gravity.data[0] = 0.0f;
+    gravity.data[1] = -0.00001f;
     gravity.data[2] = 0.f;
 
     PhysicsEngine clothPhysics(&cloth, gravity);
 
     // Create a shader for the objects in the scene.
-    unsigned int shader = make_shader("src/shaders/vertex.txt", "src/shaders/fragment.txt");
+    unsigned int shader = make_shader("../src/shaders/vertex.txt", "../src/shaders/fragment.txt");
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // Determine the model matrix for the cloth rotation and translation.
-    vec3 cloth_position = {-0.5f, -0.5f, 0.0f};
+    vec3 cloth_position = {-0.5f, 0.9f, 0.0f};
     vec3 cloth_rotation = {0.0f, 0.0f, 0.0f};
     mat4 model_matrix = model(cloth_position, cloth_rotation, 1.0f);
 
@@ -93,9 +93,9 @@ int main()
         // Set uniform shader variables.
         glUniformMatrix4fv(3, 1, GL_FALSE, model_matrix.entries);
         glUniformMatrix4fv(4, 1, GL_FALSE, view_matrix.entries);
-        glUniform3f(5, -1.0, 0.0, 5.0);
-        glUniform3f(6, 1.0, 1.0, 1.0);
-        glUniform1f(7, 0.05);
+        glUniform3f(5, -1.0, 0.0, 5.0);//lightPosition
+        glUniform3f(6, 1.0, 1.0, 1.0);//lightColor
+        glUniform1f(7, 0.05);//ambientStrength
 
         // Draw the cloth onto the screen.
         cloth.draw();

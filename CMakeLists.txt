@@ -36,6 +36,8 @@ add_executable(XPBDCloth
 	src/primitives.h
 	src/algebraic_types.h
 	src/algebraic_types.cpp
+	src/spatial_hash_structure.h
+	src/spatial_hash_structure.cpp
 )
 
 target_include_directories(XPBDCloth PRIVATE dependencies C:/msys64/mingw64/include)
