@@ -166,7 +166,7 @@ mat4 scale(float scale)
 mat4 view(vec3 from, vec3 to)
 {
     // Helper for finding the camera right vector.
-    vec3 global_up = {0.0f, 0.0f, 1.0f};
+    vec3 global_up = {0.0f, 1.0f, 0.0f};
 
     // Normalize the vectors to guarantee that the transposed
     // matrix is the inverse.
@@ -178,6 +178,8 @@ mat4 view(vec3 from, vec3 to)
     forward = normalize(forward);
 
     // The correct cross product can be found using the right hand rule.
+    // If forward = -global_up the view breaks due to the cross product being 0
+    // and therefore not normalizable.
 
     // The right facing vector of the camera.
     // Normal of the plane of the forward and up vector.

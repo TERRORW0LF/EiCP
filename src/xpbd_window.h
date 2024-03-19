@@ -1,29 +1,30 @@
 #pragma once
+
 #include "config.h"
 #include "cloth_mesh.h"
 #include "physics_engine.h"
 #include "shader.h"
 #include "linear_algebra.h"
 
-class XPBDWindow {
+class XPBDWindow
+{
 public:
 	XPBDWindow();
 	~XPBDWindow();
 
 private:
-	GLFWwindow* window;
+	GLFWwindow *window;
 
-
-	void handle_input(GLFWwindow* window, int key, int scancode, int action, int mods);
+	void handle_input(GLFWwindow *window, int key, int scancode, int action, int mods);
 
 	void initialize_members();
 
 public:
 	void update_window();
-	//blocking!
+	// blocking!
 	void enter_update_loop();
 
-	//current members:
+	// current members:
 private:
 	std::unique_ptr<ClothMesh> cloth;
 	std::unique_ptr<PhysicsEngine> clothPhysics;
