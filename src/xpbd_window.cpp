@@ -73,13 +73,18 @@ void XPBDWindow::handle_input(GLFWwindow *window, int key, int scancode, int act
 
 void XPBDWindow::initialize_members()
 {
+    // Enable face culling. This will assume a counter
+    // clockwise definition of triangles in the vertex buffer
+    // and culls the backfacing side of the triangle.
+    glEnable(GL_CULL_FACE);
+
     // Set the background color of the window.
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     // Create the cloth and give it a color.
     float color[3] = {1.0f, 0.0f, 0.0f};
 
-    cloth = std::make_unique<ClothMesh>("assets/cloth_1.obj", color);
+    cloth = std::make_unique<ClothMesh>("assets/cube.obj", color);
 
     float3 gravity;
     gravity.data[0] = 0.f;
@@ -93,12 +98,12 @@ void XPBDWindow::initialize_members()
     shader = std::make_unique<Shader>("src/shaders/vertex.txt", "src/shaders/fragment.txt");
 
     // Determine the model matrix for the cloth rotation and translation.
-    cloth_position = {-0.5f, -0.5f, -10.0f};
-    cloth_rotation = {0.0f, 0.0f, 0.0f};
-    model_matrix = model(cloth_position, cloth_rotation, 1.0f);
+    position = {0.0f, 0.0f, 0.0f};
+    rotation = {0.0f, 0.0f, 0.0f};
+    model_matrix = model(position, rotation, 1.0f);
 
     // Set the camera position and calculate the view transform.
-    camera_pos = {0.0f, 0.0f, 1.0f};
+    camera_pos = {-1.0f, 1.0f, 1.0f};
     camera_target = {0.0f, 0.0f, 0.0f};
     view_matrix = view(camera_pos, camera_target);
 
@@ -126,9 +131,9 @@ void XPBDWindow::update_window()
     glUniformMatrix4fv(3, 1, GL_FALSE, model_matrix.entries);
     glUniformMatrix4fv(4, 1, GL_FALSE, view_matrix.entries);
     glUniformMatrix4fv(5, 1, GL_FALSE, projection_matrix.entries);
-    glUniform3f(6, -1.0, 0.0, 5.0); // lightPosition
-    glUniform3f(7, 1.0, 1.0, 1.0);  // lightColor
-    glUniform1f(8, 0.05);           // ambientStrength
+    glUniform3f(6, -5.0f, 5.0f, 5.0f); // lightPosition
+    glUniform3f(7, 1.0f, 1.0f, 1.0f);  // lightColor
+    glUniform1f(8, 0.05f);             // ambientStrength
 
     // Draw the cloth onto the screen.
     cloth->draw();

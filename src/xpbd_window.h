@@ -32,8 +32,8 @@ private:
 
 	bool simulate;
 
-	vec3 cloth_position;
-	vec3 cloth_rotation;
+	vec3 position;
+	vec3 rotation;
 	mat4 model_matrix;
 
 	vec3 camera_pos;

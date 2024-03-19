@@ -136,8 +136,8 @@ void ClothMesh::compute_normals(std::vector<float3> &tempNormals)
         const float3 &v3 = vertex_positions[t.data[2]];
 
         // compute triangle normal
-        float3 e1 = v1 - v2;
-        float3 e2 = v1 - v3;
+        float3 e1 = v2 - v1;
+        float3 e2 = v3 - v1;
 
         // compute cross product
         float3 normal = e1.cross_product(e2);
