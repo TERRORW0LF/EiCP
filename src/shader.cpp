@@ -1,7 +1,7 @@
 #include "shader.h"
 #include "config.h"
 
-Shader::Shader(const std::string& vertex_filepath, const std::string& fragment_filepath)
+Shader::Shader(const std::string &vertex_filepath, const std::string &fragment_filepath)
 {
     shader = make_shader(vertex_filepath, fragment_filepath);
 }
@@ -16,7 +16,7 @@ void Shader::use()
     glUseProgram(shader);
 }
 
-unsigned int Shader::make_shader(const std::string& vertex_filepath, const std::string& fragment_filepath)
+unsigned int Shader::make_shader(const std::string &vertex_filepath, const std::string &fragment_filepath)
 {
     // Create a shader and relevant shader modules.
     unsigned int shader = glCreateProgram();
@@ -37,7 +37,7 @@ unsigned int Shader::make_shader(const std::string& vertex_filepath, const std::
         char errorLog[1024];
         glGetProgramInfoLog(shader, 1024, NULL, errorLog);
         std::cout << "Shader linking error:\n"
-            << errorLog << std::endl;
+                  << errorLog << std::endl;
     }
 
     // Delete individual shader modules as we don't need them after linking.
@@ -47,7 +47,7 @@ unsigned int Shader::make_shader(const std::string& vertex_filepath, const std::
     return shader;
 }
 
-unsigned int Shader::make_module(const std::string& filepath, unsigned int module_type)
+unsigned int Shader::make_module(const std::string &filepath, unsigned int module_type)
 {
     // Setup streams for reading shader module file.
     std::ifstream file;
@@ -68,7 +68,7 @@ unsigned int Shader::make_module(const std::string& filepath, unsigned int modul
     }
 
     std::string shaderSource = bufferedLines.str();
-    const char* shaderSrc = shaderSource.c_str();
+    const char *shaderSrc = shaderSource.c_str();
     file.close();
 
     // Compile shader module
@@ -85,7 +85,7 @@ unsigned int Shader::make_module(const std::string& filepath, unsigned int modul
         char errorLog[1024];
         glGetShaderInfoLog(shaderModule, 1024, NULL, errorLog);
         std::cout << "Shader Module compilation error:\n"
-            << errorLog << std::endl;
+                  << errorLog << std::endl;
     }
 
     return shaderModule;
