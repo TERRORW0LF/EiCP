@@ -49,7 +49,25 @@ XPBDWindow::~XPBDWindow()
 
 void XPBDWindow::handle_input(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
-    std::cout << "input " << key << std::endl;
+    switch(key) {
+    case GLFW_KEY_RIGHT:
+        camera_pos.entries[1] += 0.02;
+        view_matrix = view(camera_pos, camera_target);
+        break;
+    case GLFW_KEY_LEFT:
+        camera_pos.entries[1] -= 0.02;
+        view_matrix = view(camera_pos, camera_target);
+        break;
+    case GLFW_KEY_P:
+        if (action == GLFW_RELEASE) {
+            simulate = !simulate;
+        }
+        break;
+
+
+    default:
+        std::cout << "key " << key <<" action "<<action << std::endl;
+    }
 }
 
 void XPBDWindow::initialize_members()
@@ -68,6 +86,7 @@ void XPBDWindow::initialize_members()
     gravity.data[2] = 0.f;
 
     clothPhysics = std::make_unique<PhysicsEngine>(cloth.get(), gravity);
+    simulate = false;
 
     // Create a shader for the objects in the scene.
     shader = std::make_unique<Shader>("src/shaders/vertex.txt", "src/shaders/fragment.txt");
@@ -109,8 +128,10 @@ void XPBDWindow::update_window()
     // Gives the window the new buffer updated with glClear.
     glfwSwapBuffers(window);
 
-    // Implements the physics engine.
-    // clothPhysics->update();
+    if (simulate) {
+        // Implements the physics engine.
+        clothPhysics->update();
+    }
 }
 
 void XPBDWindow::enter_update_loop()
