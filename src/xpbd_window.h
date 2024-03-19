@@ -29,6 +29,8 @@ private:
 	std::unique_ptr<PhysicsEngine> clothPhysics;
 	std::unique_ptr<Shader> shader;
 
+	bool simulate;
+
 	vec3 cloth_position;
 	vec3 cloth_rotation;
 	mat4 model_matrix;
