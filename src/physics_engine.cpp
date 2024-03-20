@@ -56,7 +56,10 @@ void PhysicsEngine::update_step()
     for (int vertex_counter = 0; vertex_counter < vertex_positions.size(); vertex_counter++)
     {
 
-        // update velocity
+        //reduce velocity by resistance
+        velocity[vertex_counter] *= 0.999f;
+
+        // add gravity to velocity
         velocity[vertex_counter] += gravity * time_counter;
 
         // save old position
