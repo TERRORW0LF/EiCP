@@ -19,6 +19,8 @@ private:
 
 	void initialize_members();
 
+	void print_help();
+
 public:
 	void update_window();
 	void update_camera();
@@ -33,6 +35,7 @@ private:
 
 	bool simulate;
 	bool view_update;
+	float camera_speed;
 
 	vec3 position;
 	vec3 rotation;

@@ -47,6 +47,7 @@ XPBDWindow::XPBDWindow()
         _this->handle_input(window, key, scancode, action, mods); });
 
     initialize_members();
+    print_help();
 }
 
 /**
@@ -112,15 +113,48 @@ void XPBDWindow::handle_input(GLFWwindow *window, int key, int scancode, int act
         if (action == GLFW_PRESS)
             simulate = !simulate;
         break;
+    case GLFW_KEY_RIGHT_BRACKET:
+        if (action == GLFW_PRESS){
+            camera_speed *= 10.f;
+            std::cout << "new camera speed: " << camera_speed << std::endl;
+        }
+        break;
+    case GLFW_KEY_BACKSLASH:
+        if (action == GLFW_PRESS) {
+            camera_speed /= 10.f;
+            std::cout << "new camera speed: " << camera_speed << std::endl;
+        }
+        break;
+
+
+    case GLFW_KEY_H:
+        if (action == GLFW_PRESS)
+            print_help();
+        break;
 
     default:
         std::cout << "key " << key << " action " << action << std::endl;
     }
 }
 
+void XPBDWindow::print_help()
+{
+    std::cout << "==============================" << std::endl;
+    std::cout << "  Keyboard bindings:" << std::endl;
+    std::cout << "h: print this help" << std::endl;
+    std::cout << "w: move forward" << std::endl;
+    std::cout << "a: move left" << std::endl;
+    std::cout << "s: move backwards" << std::endl;
+    std::cout << "d: move right" << std::endl;
+    std::cout << "p: pause simulation" << std::endl;
+    std::cout << "+: increase camera speed" << std::endl;
+    std::cout << "#: decrease camera speed" << std::endl;
+
+    std::cout << "==============================" << std::endl;
+}
+
 void XPBDWindow::update_camera()
 {
-    const float camera_speed = 0.0003;
     vec3 direction = normalize(camera_movement);
     camera_pos += direction * camera_speed;
     view_update = true;
@@ -152,6 +186,7 @@ void XPBDWindow::initialize_members()
 
     cloth_physics = std::make_unique<PhysicsEngine>(cloth.get(), gravity);
     simulate = false;
+    camera_speed = 0.0003;
 
     // Create a shader for the objects in the scene.
     shader = std::make_unique<Shader>("shaders/vertex.txt", "shaders/fragment.txt");
@@ -175,7 +210,9 @@ void XPBDWindow::initialize_members()
     float aspect = width / (float)height;
     // Create a projection matrix with set fov, and near and far distance limits.
     projection_matrix = projection(103.0f, aspect, 0.5f, 200.0f);
+
 }
+
 
 /**
  * @brief Update the scene with the current changes.
