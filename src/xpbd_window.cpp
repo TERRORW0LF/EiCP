@@ -108,7 +108,7 @@ void XPBDWindow::initialize_members()
     // Create the cloth and give it a color.
     float color[3] = {1.0f, 0.0f, 0.0f};
 
-    cloth = std::make_unique<ClothMesh>("assets/cloth_1.obj", color);
+    cloth = std::make_unique<ClothMesh>("../assets/cloth_1.obj", color);
 
     float3 gravity;
     gravity.data[0] = 0.f;
@@ -119,7 +119,7 @@ void XPBDWindow::initialize_members()
     simulate = false;
 
     // Create a shader for the objects in the scene.
-    shader = std::make_unique<Shader>("src/shaders/vertex.txt", "src/shaders/fragment.txt");
+    shader = std::make_unique<Shader>("../src/shaders/vertex.txt", "../src/shaders/fragment.txt");
 
     // Determine the model matrix for the cloth rotation and translation.
     position = {-0.5f, -0.5f, 0.0f};
