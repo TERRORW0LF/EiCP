@@ -74,39 +74,39 @@ void XPBDWindow::handle_input(GLFWwindow *window, int key, int scancode, int act
     {
     case GLFW_KEY_W:
         if (action == GLFW_PRESS)
-            *camera_movement.get() += *camera_front.get();
+            *camera_movement.get() += normalize(*camera_front.get());
         else if (action == GLFW_RELEASE)
-            *camera_movement.get() -= *camera_front.get();
+            *camera_movement.get() -= normalize(*camera_front.get());
         break;
     case GLFW_KEY_S:
         if (action == GLFW_PRESS)
-            *camera_movement.get() -= *camera_front.get();
+            *camera_movement.get() -= normalize(*camera_front.get());
         else if (action == GLFW_RELEASE)
-            *camera_movement.get() += *camera_front.get();
+            *camera_movement.get() += normalize(*camera_front.get());
         break;
     case GLFW_KEY_A:
         if (action == GLFW_PRESS)
-            *camera_movement.get() -= *camera_right.get();
+            *camera_movement.get() -= normalize(*camera_right.get());
         else if (action == GLFW_RELEASE)
-            *camera_movement.get() += *camera_right.get();
+            *camera_movement.get() += normalize(*camera_right.get());
         break;
     case GLFW_KEY_D:
         if (action == GLFW_PRESS)
-            *camera_movement.get() += *camera_right.get();
+            *camera_movement.get() += normalize(*camera_right.get());
         else if (action == GLFW_RELEASE)
-            *camera_movement.get() -= *camera_right.get();
+            *camera_movement.get() -= normalize(*camera_right.get());
         break;
     case GLFW_KEY_SPACE:
         if (action == GLFW_PRESS)
-            *camera_movement.get() += *camera_up.get();
+            *camera_movement.get() += normalize(*camera_up.get());
         else if (action == GLFW_RELEASE)
-            *camera_movement.get() -= *camera_up.get();
+            *camera_movement.get() -= normalize(*camera_up.get());
         break;
     case GLFW_KEY_LEFT_CONTROL:
         if (action == GLFW_PRESS)
-            *camera_movement.get() -= *camera_up.get();
+            *camera_movement.get() -= normalize(*camera_up.get());
         else if (action == GLFW_RELEASE)
-            *camera_movement.get() += *camera_up.get();
+            *camera_movement.get() += normalize(*camera_up.get());
         break;
     case GLFW_KEY_P:
         if (action == GLFW_PRESS)
@@ -121,7 +121,8 @@ void XPBDWindow::handle_input(GLFWwindow *window, int key, int scancode, int act
 void XPBDWindow::update_camera()
 {
     const float camera_speed = 0.0003;
-    *camera_pos.get() += *camera_movement.get() * camera_speed;
+    vec3 direction = normalize(*camera_movement.get());
+    *camera_pos.get() += direction * camera_speed;
     view_update = true;
     return;
 }
