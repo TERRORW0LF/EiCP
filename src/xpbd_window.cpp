@@ -153,7 +153,7 @@ void XPBDWindow::initialize_members()
     simulate = false;
 
     // Create a shader for the objects in the scene.
-    shader = std::make_unique<Shader>("src/shaders/vertex.txt", "src/shaders/fragment.txt");
+    shader = std::make_unique<Shader>("shaders/vertex.txt", "shaders/fragment.txt");
 
     // Determine the model matrix for the cloth rotation and translation.
     position = std::make_unique<vec3>((vec3){-0.5f, -0.5f, 0.0f});

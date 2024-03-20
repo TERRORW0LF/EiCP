@@ -46,3 +46,11 @@ add_executable(XPBDCloth
 target_include_directories(XPBDCloth PRIVATE dependencies C:/msys64/mingw64/include)
 
 target_link_libraries(XPBDCloth PRIVATE glfw OpenGL::GL)
+
+add_custom_command(TARGET ${PROJECT_NAME}  POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${CMAKE_CURRENT_SOURCE_DIR}/assets
+                ${CMAKE_CURRENT_BINARY_DIR}/assets
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/shaders
+                ${CMAKE_CURRENT_BINARY_DIR}/shaders)
