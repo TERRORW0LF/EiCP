@@ -34,15 +34,15 @@ private:
 	bool simulate;
 	bool view_update;
 
-	std::unique_ptr<vec3> position;
-	std::unique_ptr<vec3> rotation;
-	std::unique_ptr<mat4> model_matrix;
+	vec3 position;
+	vec3 rotation;
+	mat4 model_matrix;
 
-	std::unique_ptr<vec3> camera_pos;
-	std::unique_ptr<vec3> camera_movement;
-	std::unique_ptr<vec3> camera_front;
-	std::unique_ptr<vec3> camera_up;
-	std::unique_ptr<vec3> camera_right;
-	std::unique_ptr<mat4> view_matrix;
-	std::unique_ptr<mat4> projection_matrix;
+	vec3 camera_pos;
+	vec3 camera_movement;
+	vec3 camera_front;
+	vec3 camera_up;
+	vec3 camera_right;
+	mat4 view_matrix;
+	mat4 projection_matrix;
 };
