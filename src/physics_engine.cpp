@@ -37,7 +37,6 @@ void PhysicsEngine::update()
 
     for (int i = 0; i < substeps; i++)
     {
-
         update_step();
     }
 }

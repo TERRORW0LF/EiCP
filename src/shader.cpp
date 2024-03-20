@@ -1,21 +1,43 @@
 #include "shader.h"
 #include "config.h"
 
+/**
+ * @param vertex_filepath The relative file path to the vertex shader.
+ * @param fragment_filepath The relative file path to the fragment shader.
+ * @returns A shader.
+ *
+ * @brief Creates a shader with the given modules.
+ */
 Shader::Shader(const std::string &vertex_filepath, const std::string &fragment_filepath)
 {
     shader = make_shader(vertex_filepath, fragment_filepath);
 }
 
+/**
+ * @brief Delete the shader.
+ */
 Shader::~Shader()
 {
     glDeleteProgram(shader);
 }
 
+/**
+ * @brief Use the shader for the upcoming render.
+ */
 void Shader::use()
 {
     glUseProgram(shader);
 }
 
+/**
+ * Creates an OpenGL shader from given file paths.
+ * The file paths must be relative to the current working directory.
+ *
+ * @param vertex_filepath The path to the vertex shader file.
+ * @param fragement_filepath The path to the fragment shader file.
+ * @returns an OpenGL shader.
+ *  @brief Creates an OpenGL shader from a given filepath.
+ */
 unsigned int Shader::make_shader(const std::string &vertex_filepath, const std::string &fragment_filepath)
 {
     // Create a shader and relevant shader modules.
@@ -47,6 +69,17 @@ unsigned int Shader::make_shader(const std::string &vertex_filepath, const std::
     return shader;
 }
 
+/**
+ * Creates an OpenGL shader module from a given file path.
+ * The file path must be relative to the current working directory.
+ * If the shader compilation fails a warning will be logged and the
+ * faulty module returned.
+ *
+ * @param filepath The path to the shader file.
+ * @param module_type The type of shader module to create.
+ * @returns an OpenGL shader module.
+ *  @brief Creates an OpenGL shader module from a given filepath.
+ */
 unsigned int Shader::make_module(const std::string &filepath, unsigned int module_type)
 {
     // Setup streams for reading shader module file.

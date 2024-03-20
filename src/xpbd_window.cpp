@@ -1,5 +1,12 @@
 #include "xpbd_window.h"
 
+/**
+ * This function creates a glfw window and sets up the XPBD cloth simulation.
+ * This class handles rendering and window inputs.
+ *
+ * @returns A window with the simulation.
+ * @brief Creates a window and initializes it with our simulation.
+ */
 XPBDWindow::XPBDWindow()
 {
     // The current and only window used in this application.
@@ -42,22 +49,64 @@ XPBDWindow::XPBDWindow()
     initialize_members();
 }
 
+/**
+ * @brief Closes the window.
+ */
 XPBDWindow::~XPBDWindow()
 {
     glfwTerminate();
 }
 
+/**
+ * Handel keyboard inputs and translate them into player movement.
+ *
+ * @param window The glfw window associated with this simulation window.
+ * @param key The key associated with the event.
+ * @param scancode The scancode of the key associated with the event.
+ * @param action The event being triggered.
+ * @param mods The modifier keys being pressed.
+ *
+ * @brief Handles keyboard inputs.
+ */
 void XPBDWindow::handle_input(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
     switch (key)
     {
-    case GLFW_KEY_RIGHT:
-        camera_pos.entries[1] += 0.02;
-        view_matrix = view(camera_pos, camera_target);
+    case GLFW_KEY_W:
+        if (action == GLFW_PRESS)
+            *camera_movement.get() += normalize(*camera_front.get());
+        else if (action == GLFW_RELEASE)
+            *camera_movement.get() -= normalize(*camera_front.get());
         break;
-    case GLFW_KEY_LEFT:
-        camera_pos.entries[1] -= 0.02;
-        view_matrix = view(camera_pos, camera_target);
+    case GLFW_KEY_S:
+        if (action == GLFW_PRESS)
+            *camera_movement.get() -= normalize(*camera_front.get());
+        else if (action == GLFW_RELEASE)
+            *camera_movement.get() += normalize(*camera_front.get());
+        break;
+    case GLFW_KEY_A:
+        if (action == GLFW_PRESS)
+            *camera_movement.get() -= normalize(*camera_right.get());
+        else if (action == GLFW_RELEASE)
+            *camera_movement.get() += normalize(*camera_right.get());
+        break;
+    case GLFW_KEY_D:
+        if (action == GLFW_PRESS)
+            *camera_movement.get() += normalize(*camera_right.get());
+        else if (action == GLFW_RELEASE)
+            *camera_movement.get() -= normalize(*camera_right.get());
+        break;
+    case GLFW_KEY_SPACE:
+        if (action == GLFW_PRESS)
+            *camera_movement.get() += normalize(*camera_up.get());
+        else if (action == GLFW_RELEASE)
+            *camera_movement.get() -= normalize(*camera_up.get());
+        break;
+    case GLFW_KEY_LEFT_CONTROL:
+        if (action == GLFW_PRESS)
+            *camera_movement.get() -= normalize(*camera_up.get());
+        else if (action == GLFW_RELEASE)
+            *camera_movement.get() += normalize(*camera_up.get());
         break;
     case GLFW_KEY_UP:
         camera_pos.entries[0] += 0.02;
@@ -68,10 +117,8 @@ void XPBDWindow::handle_input(GLFWwindow *window, int key, int scancode, int act
         view_matrix = view(camera_pos, camera_target);
         break;
     case GLFW_KEY_P:
-        if (action == GLFW_RELEASE)
-        {
+        if (action == GLFW_PRESS)
             simulate = !simulate;
-        }
         break;
 
     default:
@@ -79,6 +126,18 @@ void XPBDWindow::handle_input(GLFWwindow *window, int key, int scancode, int act
     }
 }
 
+void XPBDWindow::update_camera()
+{
+    const float camera_speed = 0.0003;
+    vec3 direction = normalize(*camera_movement.get());
+    *camera_pos.get() += direction * camera_speed;
+    view_update = true;
+    return;
+}
+
+/**
+ * @brief Initializes the static setup for OpenGL.
+ */
 void XPBDWindow::initialize_members()
 {
     // Enable face culling. This will assume a counter
@@ -103,30 +162,45 @@ void XPBDWindow::initialize_members()
     simulate = false;
 
     // Create a shader for the objects in the scene.
-    shader = std::make_unique<Shader>("../src/shaders/vertex.txt", "../src/shaders/fragment.txt");
+    shader = std::make_unique<Shader>("shaders/vertex.txt", "shaders/fragment.txt");
 
     // Determine the model matrix for the cloth rotation and translation.
-    position = {-0.5f, -0.5f, 0.0f};
-    rotation = {0.0f, 0.0f, 0.0f};
-    model_matrix = model(position, rotation, 1.0f);
+    position = std::make_unique<vec3>((vec3){-0.5f, -0.5f, 0.0f});
+    rotation = std::make_unique<vec3>((vec3){0.0f, 0.0f, 0.0f});
+    model_matrix = std::make_unique<mat4>((mat4)model(*position.get(), *rotation.get(), 1.0f));
 
     // Set the camera position and calculate the view transform.
-    camera_pos = {0.5f, -0.25f, 1.0f};
-    camera_target = {0.0f, 0.0f, 0.0f};
-    view_matrix = view(camera_pos, camera_target);
+    camera_movement = std::make_unique<vec3>((vec3){0.0f, 0.0f, 0.0f});
+    camera_pos = std::make_unique<vec3>((vec3){0.5f, -0.25f, 2.0f});
+    camera_front = std::make_unique<vec3>((vec3){0.0f, 0.0f, -1.0f});
+    camera_up = std::make_unique<vec3>((vec3){0.0f, 1.0f, 0.0f});
+    camera_right = std::make_unique<vec3>((vec3){1.0, 0.0f, 0.0f});
+    view_matrix = std::make_unique<mat4>((mat4)view(*camera_pos.get(), *camera_front.get(), *camera_up.get(), *camera_right.get()));
+    view_update = true;
 
     int width, height;
     glfwGetWindowSize(window, &width, &height);
     float aspect = width / (float)height;
     // Create a projection matrix with set fov, and near and far distance limits.
-    projection_matrix = projection(103.0f, aspect, 0.5f, 200.0f);
+    projection_matrix = std::make_unique<mat4>((mat4)projection(103.0f, aspect, 0.5f, 200.0f));
 }
 
+/**
+ * @brief Update the scene with the current changes.
+ */
 void XPBDWindow::update_window()
 {
 
-    // Poll all events for this frame.
+    // Poll and consume all events for this frame.
     glfwPollEvents();
+
+    // Update the camera based on the movement.
+    update_camera();
+
+    // Update the view matrix
+    if (view_update)
+        view_matrix = std::make_unique<mat4>((mat4)view(*camera_pos.get(), *camera_front.get(), *camera_up.get(), *camera_right.get()));
+    view_update = false;
 
     // Clear the background color buffer.
     // This sets the color to the one defined by glClearColor.
@@ -136,10 +210,10 @@ void XPBDWindow::update_window()
     shader->use();
 
     // Set uniform shader variables.
-    glUniformMatrix4fv(3, 1, GL_FALSE, model_matrix.entries);
-    glUniformMatrix4fv(4, 1, GL_FALSE, view_matrix.entries);
-    glUniformMatrix4fv(5, 1, GL_FALSE, projection_matrix.entries);
-    glUniform3fv(6, 1, camera_pos.entries);
+    glUniformMatrix4fv(3, 1, GL_FALSE, model_matrix.get()->entries);
+    glUniformMatrix4fv(4, 1, GL_FALSE, view_matrix.get()->entries);
+    glUniformMatrix4fv(5, 1, GL_FALSE, projection_matrix.get()->entries);
+    glUniform3fv(6, 1, camera_pos.get()->entries);
     glUniform3f(7, -5.0f, 5.0f, 5.0f); // light_pos
     glUniform3f(8, 1.0f, 1.0f, 1.0f);  // light_color
     glUniform1f(9, 0.5f);             // ambient_strength
@@ -158,6 +232,9 @@ void XPBDWindow::update_window()
     }
 }
 
+/**
+ * @brief Start the event loop to update the window.
+ */
 void XPBDWindow::enter_update_loop()
 {
     while (!glfwWindowShouldClose(window))

@@ -1,5 +1,78 @@
 #include "linear_algebra.h"
 
+// Modified code of this stackoverflow answer:
+// https://stackoverflow.com/a/14047520
+vec3 &vec3::operator=(const vec3 &v)
+{
+    entries[0] = v.entries[0];
+    entries[1] = v.entries[1];
+    entries[2] = v.entries[2];
+    return *this;
+}
+bool vec3::operator==(const vec3 &v) const
+{
+    return entries[0] == v.entries[0] && entries[1] == v.entries[1] && entries[2] == v.entries[2];
+}
+vec3 vec3::operator-() const
+{
+    return {-entries[0], -entries[1], -entries[2]};
+}
+vec3 vec3::operator+(const vec3 &v) const
+{
+    return {entries[0] + v.entries[0], entries[1] + v.entries[1], entries[2] + v.entries[2]};
+}
+vec3 &vec3::operator+=(const vec3 &v)
+{
+    *this = *this + v;
+    return *this;
+}
+vec3 vec3::operator-(const vec3 &v) const
+{
+    return *this + -v;
+}
+vec3 &vec3::operator-=(const vec3 &v)
+{
+    *this = *this - v;
+    return *this;
+}
+vec3 operator*(const float s, vec3 &v)
+{
+    return {s * v.entries[0], s * v.entries[1], s * v.entries[2]};
+}
+vec3 &operator*=(const float s, vec3 &v)
+{
+    v = s * v;
+    return v;
+}
+vec3 operator*(vec3 &v, const float s)
+{
+    return s * v;
+}
+vec3 &operator*=(vec3 &v, const float s)
+{
+    return s *= v;
+}
+vec3 vec3::operator*(const vec3 &v) const
+{
+    return {entries[0] * v.entries[0], entries[1] * v.entries[1], entries[2] * v.entries[2]};
+}
+vec3 &vec3::operator*=(const vec3 &v)
+{
+    *this = *this * v;
+    return *this;
+}
+vec3 vec3::operator%(const vec3 &v) const
+{
+    return {entries[1] * v.entries[2] - entries[2] * v.entries[1],
+            entries[2] * v.entries[0] - entries[0] * v.entries[2],
+            entries[0] * v.entries[1] - entries[1] * v.entries[0]};
+}
+vec3 &vec3::operator%=(const vec3 &v)
+{
+    *this = *this % v;
+    return *this;
+}
+
 /**
  * Combines rotating, scaling, and translating into a single matrix.
  * The order of the translation vector is x, y, z.
@@ -163,31 +236,13 @@ mat4 scale(float scale)
  * @returns A translation matrix from world to camera coordinates.
  * @brief Creates a view transformation matrix from world to camera view.
  */
-mat4 view(vec3 from, vec3 to)
+mat4 view(vec3 pos, vec3 forward, vec3 up, vec3 right)
 {
-    // Helper for finding the camera right vector.
-    vec3 global_up = {0.0f, 1.0f, 0.0f};
-
     // Normalize the vectors to guarantee that the transposed
     // matrix is the inverse.
-    // The viewing direction of the camera.
-    vec3 forward = {
-        to.entries[0] - from.entries[0],
-        to.entries[1] - from.entries[1],
-        to.entries[2] - from.entries[2]};
     forward = normalize(forward);
-
-    // The correct cross product can be found using the right hand rule.
-    // If forward = -global_up the view breaks due to the cross product being 0
-    // and therefore not normalizable.
-
-    // The right facing vector of the camera.
-    // Normal of the plane of the forward and up vector.
-    vec3 right = normalize(cross(forward, global_up));
-
-    // Set camera up vector.
-    // Normal of the camera right and forward vector.
-    vec3 up = normalize(cross(right, forward));
+    right = normalize(right);
+    up = normalize(up);
 
     // Inverse of the world to camera translation matrix.
     // The world to camera translation is the matrix consisting of
@@ -213,9 +268,9 @@ mat4 view(vec3 from, vec3 to)
     matrix.entries[10] = -forward.entries[2];
     matrix.entries[11] = 0.0f;
 
-    matrix.entries[12] = -dot(right, from);
-    matrix.entries[13] = -dot(up, from);
-    matrix.entries[14] = dot(forward, from);
+    matrix.entries[12] = -dot(right, pos);
+    matrix.entries[13] = -dot(up, pos);
+    matrix.entries[14] = dot(forward, pos);
     matrix.entries[15] = 1.0f;
 
     return matrix;
