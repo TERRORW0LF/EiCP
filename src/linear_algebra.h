@@ -13,18 +13,39 @@ struct mat4
 };
 
 /**
+ * A float vector of length 3 supporting additon, subtraction,
+ * scaling, equality, dot product, and cross product.
  * @brief Holds a vector of length 3.
  */
 struct vec3
 {
     float entries[3];
+
+    vec3 &operator=(const vec3 &v);
+    bool operator==(const vec3 &v) const;
+    vec3 operator-() const;
+    vec3 operator+(const vec3 &v) const;
+    vec3 &operator+=(const vec3 &v);
+    vec3 operator-(const vec3 &v) const;
+    vec3 &operator-=(const vec3 &v);
+    // Scalar
+    friend vec3 operator*(const float s, vec3 &v);
+    friend vec3 &operator*=(const float s, vec3 &v);
+    friend vec3 operator*(vec3 &v, const float s);
+    friend vec3 &operator*=(vec3 &v, const float s);
+    // Dot product
+    vec3 operator*(const vec3 &v) const;
+    vec3 &operator*=(const vec3 &v);
+    // Cross product
+    vec3 operator%(const vec3 &v) const;
+    vec3 &operator%=(const vec3 &v);
 };
 
 mat4 transform(vec3 translation);
 mat4 rotate(vec3 rotation);
 mat4 scale(float scale);
 mat4 model(vec3 translation, vec3 rotation, float scale);
-mat4 view(vec3 from, vec3 to);
+mat4 view(vec3 pos, vec3 forward, vec3 up, vec3 right);
 mat4 projection(float fov, float aspect_ratio, float near, float far);
 
 float dot(vec3 u, vec3 v);
