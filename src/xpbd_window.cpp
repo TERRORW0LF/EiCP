@@ -59,6 +59,14 @@ void XPBDWindow::handle_input(GLFWwindow *window, int key, int scancode, int act
         camera_pos.entries[1] -= 0.02;
         view_matrix = view(camera_pos, camera_target);
         break;
+    case GLFW_KEY_UP:
+        camera_pos.entries[0] += 0.02;
+        view_matrix = view(camera_pos, camera_target);
+        break;
+    case GLFW_KEY_DOWN:
+        camera_pos.entries[0] -= 0.02;
+        view_matrix = view(camera_pos, camera_target);
+        break;
     case GLFW_KEY_P:
         if (action == GLFW_RELEASE)
         {
@@ -76,7 +84,7 @@ void XPBDWindow::initialize_members()
     // Enable face culling. This will assume a counter
     // clockwise definition of triangles in the vertex buffer
     // and culls the backfacing side of the triangle.
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
 
     // Set the background color of the window.
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -84,7 +92,7 @@ void XPBDWindow::initialize_members()
     // Create the cloth and give it a color.
     float color[3] = {1.0f, 0.0f, 0.0f};
 
-    cloth = std::make_unique<ClothMesh>("assets/cloth_1.obj", color);
+    cloth = std::make_unique<ClothMesh>("../assets/cloth_1.obj", color);
 
     float3 gravity;
     gravity.data[0] = 0.f;
@@ -95,7 +103,7 @@ void XPBDWindow::initialize_members()
     simulate = false;
 
     // Create a shader for the objects in the scene.
-    shader = std::make_unique<Shader>("src/shaders/vertex.txt", "src/shaders/fragment.txt");
+    shader = std::make_unique<Shader>("../src/shaders/vertex.txt", "../src/shaders/fragment.txt");
 
     // Determine the model matrix for the cloth rotation and translation.
     position = {-0.5f, -0.5f, 0.0f};
@@ -134,8 +142,8 @@ void XPBDWindow::update_window()
     glUniform3fv(6, 1, camera_pos.entries);
     glUniform3f(7, -5.0f, 5.0f, 5.0f); // light_pos
     glUniform3f(8, 1.0f, 1.0f, 1.0f);  // light_color
-    glUniform1f(9, 0.05f);             // ambient_strength
-    glUniform1f(10, 0.8f);             // specular_strength
+    glUniform1f(9, 0.5f);             // ambient_strength
+    glUniform1f(10, 0.1f);             // specular_strength
 
     // Draw the cloth onto the screen.
     cloth->draw();
