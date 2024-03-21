@@ -18,6 +18,7 @@ private:
 
 	void handle_key_input(GLFWwindow *window, int key, int scancode, int action, int mods);
 	void handle_mouse_input(GLFWwindow *window, double xpos, double ypos);
+	void handle_mouse_button_input(GLFWwindow* window, int button, int action, int mods);
 
 	void initialize_members();
 
@@ -42,6 +43,7 @@ private:
 
 	bool simulate;
 	bool first_mouse;
+	bool mouse_input_enabled;
 
 	float last_mouse_x;
 	float last_mouse_y;

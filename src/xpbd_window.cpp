@@ -54,6 +54,11 @@ XPBDWindow::XPBDWindow()
         XPBDWindow *_this = static_cast<XPBDWindow*>(glfwGetWindowUserPointer(window));
         _this->handle_mouse_input(window, xpos, ypos); });
 
+    glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods)
+        {
+            XPBDWindow* _this = static_cast<XPBDWindow*>(glfwGetWindowUserPointer(window));
+            _this->handle_mouse_button_input(window, button, action, mods); });
+
     initialize_members();
     print_help();
 }
@@ -75,6 +80,8 @@ XPBDWindow::~XPBDWindow()
  */
 void XPBDWindow::handle_mouse_input(GLFWwindow *window, double xpos, double ypos)
 {
+    if (!mouse_input_enabled)
+        return;
     // Calculate offsets. In glfw (0,0) is the upper left corner
     // and y is growing downwards.
     float xoffset = xpos - last_mouse_x;
@@ -86,6 +93,19 @@ void XPBDWindow::handle_mouse_input(GLFWwindow *window, double xpos, double ypos
     if (!first_mouse)
         camera->update_angle(xoffset, yoffset);
     first_mouse = false;
+}
+
+void XPBDWindow::handle_mouse_button_input(GLFWwindow* window, int button, int action, int mods)
+{
+    switch (button) {
+    case GLFW_MOUSE_BUTTON_LEFT:
+        if (action == GLFW_PRESS) {
+            mouse_input_enabled = true;
+            first_mouse = true;
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        }
+        break;
+    }
 }
 
 /**
@@ -172,6 +192,12 @@ void XPBDWindow::handle_key_input(GLFWwindow *window, int key, int scancode, int
         if (action == GLFW_PRESS)
             print_help();
         break;
+    case GLFW_KEY_ESCAPE:
+        if (action == GLFW_PRESS) {
+            mouse_input_enabled = false; 
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
+        break;
     }
 }
 
@@ -179,15 +205,16 @@ void XPBDWindow::print_help()
 {
     std::cout << "==============================" << std::endl;
     std::cout << "  Keyboard bindings:" << std::endl;
-    std::cout << "h: print this help" << std::endl;
-    std::cout << "w: move forward" << std::endl;
-    std::cout << "a: move left" << std::endl;
-    std::cout << "s: move backwards" << std::endl;
-    std::cout << "d: move right" << std::endl;
-    std::cout << "+: increase camera speed" << std::endl;
-    std::cout << "#: decrease camera speed" << std::endl;
-    std::cout << "p: pause simulation" << std::endl;
-    std::cout << "r: reset the experiment" << std::endl;
+    std::cout << "h:   print this help" << std::endl;
+    std::cout << "w:   move forward" << std::endl;
+    std::cout << "a:   move left" << std::endl;
+    std::cout << "s:   move backwards" << std::endl;
+    std::cout << "d:   move right" << std::endl;
+    std::cout << "+:   increase camera speed" << std::endl;
+    std::cout << "#:   decrease camera speed" << std::endl;
+    std::cout << "p:   pause simulation" << std::endl;
+    std::cout << "r:   reset the experiment" << std::endl;
+    std::cout << "ESC: free the mouse" << std::endl;
 
     std::cout << "==============================" << std::endl;
 }
