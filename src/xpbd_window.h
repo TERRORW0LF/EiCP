@@ -5,6 +5,7 @@
 #include "physics_engine.h"
 #include "shader.h"
 #include "linear_algebra.h"
+#include "camera.h"
 
 class XPBDWindow
 {
@@ -15,7 +16,8 @@ public:
 private:
 	GLFWwindow *window;
 
-	void handle_input(GLFWwindow *window, int key, int scancode, int action, int mods);
+	void handle_key_input(GLFWwindow *window, int key, int scancode, int action, int mods);
+	void handle_mouse_input(GLFWwindow *window, double xpos, double ypos);
 
 	void initialize_members();
 
@@ -33,20 +35,23 @@ private:
 	std::unique_ptr<ClothMesh> cloth;
 	std::unique_ptr<PhysicsEngine> cloth_physics;
 	std::unique_ptr<Shader> shader;
+	std::unique_ptr<Camera> camera;
+
+	double delta_time;
+	double last_frame;
 
 	bool simulate;
-	bool view_update;
-	float camera_speed;
+	bool first_mouse;
+
+	float last_mouse_x;
+	float last_mouse_y;
+	short forward;
+	short right;
+	short up;
 
 	vec3 position;
 	vec3 rotation;
 	mat4 model_matrix;
-
-	vec3 camera_pos;
-	vec3 camera_movement;
-	vec3 camera_front;
-	vec3 camera_up;
-	vec3 camera_right;
 	mat4 view_matrix;
 	mat4 projection_matrix;
 };

@@ -24,8 +24,8 @@ find_package(glfw3 3.4 REQUIRED)
 
 # Adding something we can run - Output name matches target name
 add_executable(XPBDCloth
-        src/main.cpp
         src/config.h
+        src/main.cpp
         src/glad.c
         src/cloth_mesh.h
         src/cloth_mesh.cpp
@@ -33,14 +33,16 @@ add_executable(XPBDCloth
         src/physics_engine.cpp
         src/linear_algebra.h
         src/linear_algebra.cpp
-	      src/algebraic_types.h
-	      src/algebraic_types.cpp
-	      src/spatial_hash_structure.h
-	      src/spatial_hash_structure.cpp
-	      src/xpbd_window.h
-	      src/xpbd_window.cpp
-	      src/shader.h
-	      src/shader.cpp
+	src/algebraic_types.h
+        src/algebraic_types.cpp
+        src/spatial_hash_structure.h
+        src/spatial_hash_structure.cpp
+        src/xpbd_window.h
+        src/xpbd_window.cpp
+        src/shader.h
+        src/shader.cpp
+        src/camera.h
+        src/camera.cpp
 )
 
 target_include_directories(XPBDCloth PRIVATE dependencies C:/msys64/mingw64/include)

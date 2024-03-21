@@ -35,7 +35,7 @@ vec3 &vec3::operator-=(const vec3 &v)
     *this = *this - v;
     return *this;
 }
-vec3 operator*(const float s, vec3 &v)
+vec3 operator*(const float s, const vec3 &v)
 {
     return {s * v.entries[0], s * v.entries[1], s * v.entries[2]};
 }
@@ -44,7 +44,7 @@ vec3 &operator*=(const float s, vec3 &v)
     v = s * v;
     return v;
 }
-vec3 operator*(vec3 &v, const float s)
+vec3 operator*(const vec3 &v, const float s)
 {
     return s * v;
 }
@@ -236,13 +236,13 @@ mat4 scale(float scale)
  * @returns A translation matrix from world to camera coordinates.
  * @brief Creates a view transformation matrix from world to camera view.
  */
-mat4 view(vec3 pos, vec3 forward, vec3 up, vec3 right)
+mat4 view(vec3 pos, vec3 forward, vec3 global_up)
 {
     // Normalize the vectors to guarantee that the transposed
     // matrix is the inverse.
     forward = normalize(forward);
-    right = normalize(right);
-    up = normalize(up);
+    vec3 right = normalize(forward % global_up);
+    vec3 up = normalize(right % forward);
 
     // Inverse of the world to camera translation matrix.
     // The world to camera translation is the matrix consisting of
