@@ -123,7 +123,7 @@ void XPBDWindow::handle_key_input(GLFWwindow *window, int key, int scancode, int
 {
     switch (key)
     {
-    // Assign movement value for all 3 directions.
+        // Assign movement value for all 3 directions.
     case GLFW_KEY_W:
         if (action == GLFW_PRESS)
             forward += 1;
@@ -160,12 +160,12 @@ void XPBDWindow::handle_key_input(GLFWwindow *window, int key, int scancode, int
         else if (action == GLFW_RELEASE)
             up += 1;
         break;
-    // Pause / start simulation.
+        // Pause / start simulation.
     case GLFW_KEY_P:
         if (action == GLFW_PRESS)
             simulate = !simulate;
         break;
-    // Adjust movement speed.
+        // Adjust movement speed.
     case GLFW_KEY_RIGHT_BRACKET:
         if (action == GLFW_PRESS)
         {
@@ -180,22 +180,34 @@ void XPBDWindow::handle_key_input(GLFWwindow *window, int key, int scancode, int
             std::cout << "new camera speed: " << camera->movement_speed << std::endl;
         }
         break;
-    // Reset the cloth.
+        // Reset the cloth.
     case GLFW_KEY_R:
         if (action == GLFW_PRESS)
         {
             reset_cloth();
         }
         break;
-    // Print the help text.
+        // Print the help text.
     case GLFW_KEY_H:
         if (action == GLFW_PRESS)
             print_help();
         break;
     case GLFW_KEY_ESCAPE:
         if (action == GLFW_PRESS) {
-            mouse_input_enabled = false; 
+            mouse_input_enabled = false;
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
+        break;
+    case GLFW_KEY_F:
+        if (action == GLFW_PRESS) {
+            if (draw_wire_frame) {
+                draw_wire_frame = false;
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            }
+            else {
+                draw_wire_frame = true;
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            }
         }
         break;
     }
@@ -214,6 +226,7 @@ void XPBDWindow::print_help()
     std::cout << "#:   decrease camera speed" << std::endl;
     std::cout << "p:   pause simulation" << std::endl;
     std::cout << "r:   reset the experiment" << std::endl;
+    std::cout << "f:   toggle wireframe" << std::endl;
     std::cout << "ESC: free the mouse" << std::endl;
 
     std::cout << "==============================" << std::endl;
@@ -263,6 +276,7 @@ void XPBDWindow::initialize_members()
 
     cloth_physics = std::make_unique<PhysicsEngine>(cloth.get(), gravity);
     simulate = false;
+    draw_wire_frame = false;
 
     // Create a shader for the objects in the scene.
     shader = std::make_unique<Shader>("shaders/vertex.txt", "shaders/fragment.txt");

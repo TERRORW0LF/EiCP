@@ -165,7 +165,7 @@ void PhysicsEngine::update_step()
     // Constraint: top left and top right must stay in place
     // This constraint is a simple position constraint that keeps the top left and top right vertices in place. Hence, the cloth will not fall down and we can see the effect of the other constraints.
     unsigned int last = vertex_positions.size() - 1;
-    last = 0;
+    last = old_position.size()-1;
     vertex_positions[last] = old_position[last];
 
     // Update the velocity of each vertex by comparing the new position with the old position.

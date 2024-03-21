@@ -44,6 +44,7 @@ private:
 	bool simulate;
 	bool first_mouse;
 	bool mouse_input_enabled;
+	bool draw_wire_frame;
 
 	float last_mouse_x;
 	float last_mouse_y;
