@@ -1,11 +1,12 @@
 #pragma once
 #include "config.h"
 #include "algebraic_types.h"
+#include "linear_algebra.h"
 
 class ClothMesh
 {
 public:
-    ClothMesh(const std::string &cloth_path, float color[3]);
+    ClothMesh(const std::string &cloth_path, vec3 color);
     void draw();
     ~ClothMesh();
 

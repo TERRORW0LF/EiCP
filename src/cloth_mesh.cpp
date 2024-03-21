@@ -1,6 +1,5 @@
 #include "cloth_mesh.h"
 #include <cassert>
-#include "algebraic_types.h"
 
 std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::string &obj_path);
 
@@ -10,7 +9,7 @@ std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::str
  * @param cloth_path external path to the cloth obj file
  * @param color color of the cloth
  */
-ClothMesh::ClothMesh(const std::string &cloth_path, float color[3])
+ClothMesh::ClothMesh(const std::string &cloth_path, vec3 color)
 {
     auto mesh = read_obj(cloth_path);
     std::vector<float> vertices = mesh.first;
@@ -23,7 +22,7 @@ ClothMesh::ClothMesh(const std::string &cloth_path, float color[3])
     int i = vertices.size() / 3;
     while (i--)
     {
-        colors.insert(colors.end(), color, color + 3);
+        colors.insert(colors.end(), color.entries, color.entries + 3);
     }
 
     assert(vertices.size() % 3 == 0);

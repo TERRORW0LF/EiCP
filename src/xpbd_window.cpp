@@ -182,7 +182,7 @@ void XPBDWindow::print_help()
 void XPBDWindow::reset_cloth()
 {
     // Create the cloth and give it a color.
-    float color[3] = {1.0f, 0.0f, 0.0f};
+    vec3 color = {1.0f, 0.0f, 0.0f};
 
     cloth = std::make_unique<ClothMesh>("../assets/cloth_1.obj", color);
 
@@ -215,7 +215,7 @@ void XPBDWindow::initialize_members()
     delta_time = 0.0f;
     last_frame = 0.0f;
 
-    vec3 color = {0.0f, 0.0f, 1.0f};
+    vec3 color = {1.0f, 0.0f, 0.0f};
     cloth = std::make_unique<ClothMesh>("assets/cloth_1.obj", color);
 
     float3 gravity;
