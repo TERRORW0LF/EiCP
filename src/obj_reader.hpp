@@ -1,3 +1,4 @@
+#pragma once
 
 #include <filesystem>
 #include <thread>
@@ -8,11 +9,19 @@
 #include <windows.h>
 #endif
 
+const size_t thread_threshhold = 1048576;
+const size_t block_size = 262144;
+const size_t max_line = 4096;
+
 struct Chunk
 {
     std::vector<float> vertices{};
     std::vector<unsigned int> faces{};
 };
+
+std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::string &obj_path);
+void read_blocks(File *file, int begin, int end, bool stop_at_eol, Chunk *chunk);
+void consume_line(std::string_view line, Chunk *chunk);
 
 #ifdef _WIN32
 
@@ -89,11 +98,13 @@ struct Reader
             std::cout << "Reading block failed" << std::endl;
     }
 
-    void await_result()
+    size_t await_result()
     {
-        bool success = GetOverlappedResult(read_handle, &overlapped, nullptr, TRUE);
+        DWORD bytes_read = DWORD{};
+        bool success = GetOverlappedResult(read_handle, &overlapped, &bytes_read, TRUE);
         if (!success)
             std::cout << "Copying block failed" << std::endl;
+        return bytes_read;
     }
 
 private:
@@ -119,9 +130,9 @@ std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::str
 
     std::vector<Chunk> chunks = std::vector<Chunk>();
 
-    int num_blocks = file.size() / 262144 + (file.size() % 262144 > 0);
+    int num_blocks = file.size() / block_size + (file.size() % block_size > 0);
 
-    if (file.size() > 1048576)
+    if (file.size() > thread_threshhold)
     {
         unsigned int num_threads = std::thread::hardware_concurrency();
         int blocks_per_thread = num_blocks / num_threads;
@@ -157,6 +168,7 @@ std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::str
 
             threads.emplace_back(read_blocks, &file, begin, end, stop_at_eol, chunk);
         }
+        // TODO: Wait for threads to finish and merge results.
     }
     else
     {
@@ -167,11 +179,132 @@ std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::str
 
 void read_blocks(File *file, int begin, int end, bool stop_at_eol, Chunk *chunk)
 {
+    // We always read full lines, therefore all block except the first one
+    // will skip the incomplete first line.
     bool begin_after_eol = begin > 0;
     bool reached_eof = false;
+
+    // Initialize reader to read chunks of data of the file.
     Reader reader = Reader(*file);
-    char *buffer[262144];
-    size_t file_offset = begin * 262144;
+    std::string_view line = std::string_view();
+    std::string_view text = std::string_view();
+    size_t buffer_size = block_size + max_line;
+    auto front_buffer = std::unique_ptr<char>(static_cast<char *>(malloc(buffer_size))).get();
+    auto back_buffer = std::unique_ptr<char>(static_cast<char *>(malloc(buffer_size))).get();
+    size_t file_offset = begin * block_size;
+
+    // Read the first block and save it for consumption.
+    Reader reader = Reader(*file);
+    reader.read_block(file_offset, block_size, front_buffer);
+    size_t bytes_read = reader.await_result();
+    reached_eof = bytes_read < block_size;
+    text = std::string_view(front_buffer, bytes_read);
+
+    // If this is not the first overall block, throw away incomplete first line.
+    if (begin_after_eol)
+    {
+        const char *eol = static_cast<const char *>(memchr(text.data(), '\n', max_line));
+        size_t length = static_cast<size_t>(eol - text.data());
+        text.remove_prefix(length + 1);
+    }
+
+    // Iterate over the rest of the blocks.
+    for (int i = begin; i < end; i++)
+    {
+        // The size of the last part of a block not in a full line.
+        size_t remainder = size_t{};
+        bool last_block = (i == end - 1) || reached_eof;
+
+        if (!last_block)
+        {
+            // If this is not the last block, prepare the next block in advance.
+            file_offset = (i + 1) * block_size;
+            reader.read_block(file_offset, block_size, back_buffer + max_line);
+        }
+        else if (stop_at_eol)
+        {
+            // The last block is actually the frist block of the next chunk.
+            // We therefore only want to read the first line, which the next chunk will
+            // throw away.
+            const char *eol = static_cast<const char *>(memchr(text.data(), '\n', max_line));
+            if (eol != nullptr)
+            {
+                size_t line_length = static_cast<size_t>(eol - text.data());
+                line = text.substr(0, line_length);
+                if (line.ends_with('\r'))
+                    line.remove_suffix(1);
+
+                consume_line(line, chunk);
+            }
+            return;
+        }
+
+        while (!text.empty())
+        {
+            const char *eol = static_cast<const char *>(memchr(text.data(), '\n', max_line));
+            if (eol != nullptr)
+            {
+                size_t line_length = static_cast<size_t>(eol - text.data());
+                line = text.substr(0, line_length);
+                if (line.ends_with('\r'))
+                    line.remove_suffix(1);
+
+                text.remove_prefix(line_length + 1);
+            }
+            else
+            {
+                // This should only happen at the end of the file.
+                if (last_block)
+                {
+                    line = text;
+                    consume_line(line, chunk);
+                    // We have reached the end of the block. Add incomplete line to
+                    // the start of the next buffer.
+                }
+                else
+                {
+                    remainder = text.size();
+                    memcpy(back_buffer + max_line - remainder, text.data(), remainder);
+                }
+                // Prepare for the next block.
+                text = {};
+                break;
+            }
+
+            consume_line(line, chunk);
+        }
+
+        if (!last_block)
+        {
+            // Wait for the read process started at the beginning
+            // of the loop to finish.
+            size_t bytes_read = reader.await_result();
+            reached_eof = bytes_read < block_size;
+
+            // Put the new block in the working buffer.
+            // Prepare next block with the filled incompleted line of the last buffer.
+            std::swap(front_buffer, back_buffer);
+            text = std::string_view(front_buffer + max_line - remainder, bytes_read + remainder);
+        }
+        else if (reached_eof)
+            break;
+    }
+}
+
+void consume_line(std::string_view line, Chunk *chunk)
+{
+    if (line.empty())
+        return;
+
+    switch (line.front())
+    {
+    case 'v':
+        line.remove_prefix(2);
+        break;
+    case 'f':
+        line.remove_prefix(2);
+        break;
+    }
 }
 
 #elif
