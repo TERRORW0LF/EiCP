@@ -54,8 +54,8 @@ XPBDWindow::XPBDWindow()
         XPBDWindow *_this = static_cast<XPBDWindow*>(glfwGetWindowUserPointer(window));
         _this->handle_mouse_input(window, xpos, ypos); });
 
-    glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods)
-        {
+    glfwSetMouseButtonCallback(window, [](GLFWwindow *window, int button, int action, int mods)
+                               {
             XPBDWindow* _this = static_cast<XPBDWindow*>(glfwGetWindowUserPointer(window));
             _this->handle_mouse_button_input(window, button, action, mods); });
 
@@ -95,11 +95,13 @@ void XPBDWindow::handle_mouse_input(GLFWwindow *window, double xpos, double ypos
     first_mouse = false;
 }
 
-void XPBDWindow::handle_mouse_button_input(GLFWwindow* window, int button, int action, int mods)
+void XPBDWindow::handle_mouse_button_input(GLFWwindow *window, int button, int action, int mods)
 {
-    switch (button) {
+    switch (button)
+    {
     case GLFW_MOUSE_BUTTON_LEFT:
-        if (action == GLFW_PRESS) {
+        if (action == GLFW_PRESS)
+        {
             mouse_input_enabled = true;
             first_mouse = true;
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -193,18 +195,22 @@ void XPBDWindow::handle_key_input(GLFWwindow *window, int key, int scancode, int
             print_help();
         break;
     case GLFW_KEY_ESCAPE:
-        if (action == GLFW_PRESS) {
+        if (action == GLFW_PRESS)
+        {
             mouse_input_enabled = false;
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         }
         break;
     case GLFW_KEY_F:
-        if (action == GLFW_PRESS) {
-            if (draw_wire_frame) {
+        if (action == GLFW_PRESS)
+        {
+            if (draw_wire_frame)
+            {
                 draw_wire_frame = false;
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             }
-            else {
+            else
+            {
                 draw_wire_frame = true;
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             }
@@ -237,14 +243,19 @@ void XPBDWindow::reset_cloth()
     // Create the cloth and give it a color.
     vec3 color = {1.0f, 0.0f, 0.0f};
 
-    cloth = std::make_unique<ClothMesh>("../assets/cloth_1.obj", color);
+    cloth = std::make_unique<ClothMesh>("assets/cloth_3.obj", color);
+
+    // Determine the model matrix for the cloth rotation and translation.
+    position = {0.0f, 0.0f, 0.0f};
+    rotation = {0.0f, 0.0f, 0.0f};
+    model_matrix = model(position, rotation, 1.0f);
 
     float3 gravity;
     gravity.data[0] = 0.f;
     gravity.data[1] = -0.00001f;
     gravity.data[2] = 0.f;
 
-    cloth_physics = std::make_unique<PhysicsEngine>(cloth.get(), gravity);
+    // cloth_physics = std::make_unique<PhysicsEngine>(cloth.get(), gravity);
 }
 
 /**
@@ -269,12 +280,6 @@ void XPBDWindow::initialize_members()
     delta_time = 0.0f;
     last_frame = 0.0f;
 
-    float3 gravity;
-    gravity.data[0] = 0.f;
-    gravity.data[1] = -0.00001f;
-    gravity.data[2] = 0.f;
-
-    cloth_physics = std::make_unique<PhysicsEngine>(cloth.get(), gravity);
     simulate = false;
     draw_wire_frame = false;
 
@@ -282,12 +287,7 @@ void XPBDWindow::initialize_members()
     shader = std::make_unique<Shader>("shaders/vertex.txt", "shaders/fragment.txt");
 
     // Create a camera at the given position.
-    camera = std::make_unique<Camera>(vec3{0.0f, 0.0f, 1.0f});
-
-    // Determine the model matrix for the cloth rotation and translation.
-    position = {-0.5f, -0.5f, 0.0f};
-    rotation = {0.0f, 0.0f, 0.0f};
-    model_matrix = model(position, rotation, 1.0f);
+    camera = std::make_unique<Camera>(vec3{0.0f, 0.0f, 7.0f});
 
     int width, height;
     glfwGetWindowSize(window, &width, &height);
