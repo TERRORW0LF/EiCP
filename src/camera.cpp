@@ -63,15 +63,27 @@ void Camera::update_angle(float xoffset, float yoffset)
     if (pitch < -89.0f)
         pitch = -89.0f;
 
+    update_vectors();
+}
+
+/**
+ * @brief Set the new camera base vectors based on the new yaw and pitch.
+ */
+void Camera::update_vectors()
+{
     // Camera angle.
     const float yaw_rad = yaw * PI / 180;
     const float pitch_rad = pitch * PI / 180;
 
-    // Set new camera base vectors.
+    // Update camera facing direction.
+    // For yaw this is (cos(yaw), 1, sin(yaw))^T
+    // For pitch this is (cos(pitch), sin(pitch), cos(pitch))^T
     vec3 direction = {
         cosf(yaw_rad) * cosf(pitch_rad),
         sinf(pitch_rad),
         sinf(yaw_rad) * cosf(pitch_rad)};
+
+    // Set new camera base vectors.
     forward = normalize(direction);
     right = normalize(forward % global_up);
     up = normalize(right % forward);

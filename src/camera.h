@@ -22,4 +22,7 @@ public:
     float movement_speed;
     float sensitivity;
     float fov;
+
+private:
+    void update_vectors();
 };
