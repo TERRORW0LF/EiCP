@@ -66,14 +66,23 @@ XPBDWindow::~XPBDWindow()
     glfwTerminate();
 }
 
+/**
+ * @param window The window for this input.
+ * @param xpos The x position of the cursor on the screen.
+ * @param ypos The y position of the cursor on the screen.
+ *
+ * @brief Handle cursor position changes and update camera.
+ */
 void XPBDWindow::handle_mouse_input(GLFWwindow *window, double xpos, double ypos)
 {
-    // Calculate offsets. In glfw (0,0) is the upper left corner.
+    // Calculate offsets. In glfw (0,0) is the upper left corner
+    // and y is growing downwards.
     float xoffset = xpos - last_mouse_x;
     float yoffset = last_mouse_y - ypos;
     last_mouse_x = xpos;
     last_mouse_y = ypos;
 
+    // Avoid big jumps when the mouse focuses the window for the first time.
     if (!first_mouse)
         camera.get()->update_angle(xoffset, yoffset);
     first_mouse = false;
@@ -94,6 +103,7 @@ void XPBDWindow::handle_key_input(GLFWwindow *window, int key, int scancode, int
 {
     switch (key)
     {
+    // Assign movement value for all 3 directions.
     case GLFW_KEY_W:
         if (action == GLFW_PRESS)
             forward += 1;
@@ -130,10 +140,12 @@ void XPBDWindow::handle_key_input(GLFWwindow *window, int key, int scancode, int
         else if (action == GLFW_RELEASE)
             up += 1;
         break;
+    // Pause / start simulation.
     case GLFW_KEY_P:
         if (action == GLFW_PRESS)
             simulate = !simulate;
         break;
+    // Adjust movement speed.
     case GLFW_KEY_RIGHT_BRACKET:
         if (action == GLFW_PRESS)
         {
@@ -148,13 +160,14 @@ void XPBDWindow::handle_key_input(GLFWwindow *window, int key, int scancode, int
             std::cout << "new camera speed: " << camera.get()->movement_speed << std::endl;
         }
         break;
+    // Reset the cloth.
     case GLFW_KEY_R:
         if (action == GLFW_PRESS)
         {
             reset_cloth();
         }
         break;
-
+    // Print the help text.
     case GLFW_KEY_H:
         if (action == GLFW_PRESS)
             print_help();
@@ -210,13 +223,11 @@ void XPBDWindow::initialize_members()
     // Set the background color of the window.
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
+    // Set up the cloth in the scene.
     reset_cloth();
 
     delta_time = 0.0f;
     last_frame = 0.0f;
-
-    vec3 color = {1.0f, 0.0f, 0.0f};
-    cloth = std::make_unique<ClothMesh>("assets/cloth_1.obj", color);
 
     float3 gravity;
     gravity.data[0] = 0.f;
@@ -249,6 +260,7 @@ void XPBDWindow::initialize_members()
     up = 0;
 
     float aspect = width / (float)height;
+
     // Create a projection matrix with set fov, and near and far distance limits.
     projection_matrix = projection(camera.get()->fov, aspect, 0.1f, 200.0f);
 }
