@@ -84,7 +84,7 @@ void XPBDWindow::handle_mouse_input(GLFWwindow *window, double xpos, double ypos
 
     // Avoid big jumps when the mouse focuses the window for the first time.
     if (!first_mouse)
-        camera.get()->update_angle(xoffset, yoffset);
+        camera->update_angle(xoffset, yoffset);
     first_mouse = false;
 }
 
@@ -149,15 +149,15 @@ void XPBDWindow::handle_key_input(GLFWwindow *window, int key, int scancode, int
     case GLFW_KEY_RIGHT_BRACKET:
         if (action == GLFW_PRESS)
         {
-            camera.get()->movement_speed *= 10.f;
-            std::cout << "new camera speed: " << camera.get()->movement_speed << std::endl;
+            camera->movement_speed *= 10.f;
+            std::cout << "new camera speed: " << camera->movement_speed << std::endl;
         }
         break;
     case GLFW_KEY_BACKSLASH:
         if (action == GLFW_PRESS)
         {
-            camera.get()->movement_speed /= 10.f;
-            std::cout << "new camera speed: " << camera.get()->movement_speed << std::endl;
+            camera->movement_speed /= 10.f;
+            std::cout << "new camera speed: " << camera->movement_speed << std::endl;
         }
         break;
     // Reset the cloth.
@@ -262,7 +262,7 @@ void XPBDWindow::initialize_members()
     float aspect = width / (float)height;
 
     // Create a projection matrix with set fov, and near and far distance limits.
-    projection_matrix = projection(camera.get()->fov, aspect, 0.1f, 200.0f);
+    projection_matrix = projection(camera->fov, aspect, 0.1f, 200.0f);
 }
 
 /**
@@ -276,10 +276,10 @@ void XPBDWindow::update_window()
     last_frame = curr_frame;
 
     // Update the camera based on the movement.
-    camera.get()->update_movement(forward, right, up, delta_time);
+    camera->update_movement(forward, right, up, delta_time);
 
     // Update the view matrix
-    view_matrix = camera.get()->get_view();
+    view_matrix = camera->get_view();
 
     if (simulate)
     {
@@ -298,7 +298,7 @@ void XPBDWindow::update_window()
     glUniformMatrix4fv(3, 1, GL_FALSE, model_matrix.entries);
     glUniformMatrix4fv(4, 1, GL_FALSE, view_matrix.entries);
     glUniformMatrix4fv(5, 1, GL_FALSE, projection_matrix.entries);
-    glUniform3fv(6, 1, camera.get()->position.entries);
+    glUniform3fv(6, 1, camera->position.entries);
     glUniform3f(7, -5.0f, 5.0f, 5.0f); // light_pos
     glUniform3f(8, 1.0f, 1.0f, 1.0f);  // light_color
     glUniform1f(9, 0.5f);              // ambient_strength
