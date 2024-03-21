@@ -125,7 +125,11 @@ void XPBDWindow::handle_input(GLFWwindow *window, int key, int scancode, int act
             std::cout << "new camera speed: " << camera_speed << std::endl;
         }
         break;
-
+    case GLFW_KEY_R:
+        if (action == GLFW_PRESS) {
+            reset_cloth();
+        }
+        break;
 
     case GLFW_KEY_H:
         if (action == GLFW_PRESS)
@@ -146,11 +150,27 @@ void XPBDWindow::print_help()
     std::cout << "a: move left" << std::endl;
     std::cout << "s: move backwards" << std::endl;
     std::cout << "d: move right" << std::endl;
-    std::cout << "p: pause simulation" << std::endl;
     std::cout << "+: increase camera speed" << std::endl;
     std::cout << "#: decrease camera speed" << std::endl;
+    std::cout << "p: pause simulation" << std::endl;
+    std::cout << "r: reset the experiment" << std::endl;
 
     std::cout << "==============================" << std::endl;
+}
+
+void XPBDWindow::reset_cloth()
+{
+    // Create the cloth and give it a color.
+    float color[3] = { 1.0f, 0.0f, 0.0f };
+
+    cloth = std::make_unique<ClothMesh>("../assets/cloth_1.obj", color);
+
+    float3 gravity;
+    gravity.data[0] = 0.f;
+    gravity.data[1] = -0.00001f;
+    gravity.data[2] = 0.f;
+
+    cloth_physics = std::make_unique<PhysicsEngine>(cloth.get(), gravity);
 }
 
 void XPBDWindow::update_camera()
@@ -174,17 +194,8 @@ void XPBDWindow::initialize_members()
     // Set the background color of the window.
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    // Create the cloth and give it a color.
-    float color[3] = {1.0f, 0.0f, 0.0f};
+    reset_cloth();
 
-    cloth = std::make_unique<ClothMesh>("../assets/cloth_1.obj", color);
-
-    float3 gravity;
-    gravity.data[0] = 0.f;
-    gravity.data[1] = -0.00001f;
-    gravity.data[2] = 0.f;
-
-    cloth_physics = std::make_unique<PhysicsEngine>(cloth.get(), gravity);
     simulate = false;
     camera_speed = 0.0003;
 

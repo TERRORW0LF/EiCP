@@ -20,6 +20,7 @@ private:
 	void initialize_members();
 
 	void print_help();
+	void reset_cloth();
 
 public:
 	void update_window();
