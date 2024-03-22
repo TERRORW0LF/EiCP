@@ -281,7 +281,7 @@ void XPBDWindow::initialize_members()
     last_frame = 0.0f;
 
     simulate = false;
-    draw_wire_frame = false;
+    draw_wire_frame = true;
 
     // Create a shader for the objects in the scene.
     shader = std::make_unique<Shader>("shaders/vertex.txt", "shaders/fragment.txt");
@@ -340,10 +340,10 @@ void XPBDWindow::update_window()
     glUniformMatrix4fv(4, 1, GL_FALSE, view_matrix.entries);
     glUniformMatrix4fv(5, 1, GL_FALSE, projection_matrix.entries);
     glUniform3fv(6, 1, camera->position.entries);
-    glUniform3f(7, -5.0f, 5.0f, 5.0f); // light_pos
-    glUniform3f(8, 1.0f, 1.0f, 1.0f);  // light_color
-    glUniform1f(9, 0.5f);              // ambient_strength
-    glUniform1f(10, 0.1f);             // specular_strength
+    glUniform3f(7, -10.0f, 0.0f, 10.0f); // light_pos
+    glUniform3f(8, 1.0f, 1.0f, 1.0f);    // light_color
+    glUniform1f(9, 0.5f);                // ambient_strength
+    glUniform1f(10, 0.1f);               // specular_strength
 
     // Draw the cloth onto the screen.
     cloth->draw();

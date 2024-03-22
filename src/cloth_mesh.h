@@ -2,6 +2,7 @@
 #include "config.h"
 #include "algebraic_types.h"
 #include "linear_algebra.h"
+#include "obj_reader.h"
 
 class ClothMesh
 {

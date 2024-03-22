@@ -1,42 +1,39 @@
-#pragma once
+#include "obj_reader.h"
 
-#include <filesystem>
-#include <thread>
-#include "config.h"
-#include "linear_algebra.h"
+constexpr void trim_left(std::string_view &text) noexcept
+{
+    size_t i = 0;
+    while (i < text.size())
+    {
+        if (text[i] == ' ')
+            i++;
+        else
+            break;
+    }
+    text.remove_prefix(i);
+}
 
 #ifdef _WIN32
-#include <windows.h>
-#endif
-
-const size_t thread_threshhold = 1048576;
-const size_t block_size = 262144;
-const size_t max_line = 4096;
-
 struct Chunk
 {
     std::vector<float> vertices{};
     std::vector<unsigned int> faces{};
 };
 
-std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::string &obj_path);
-void read_blocks(File *file, int begin, int end, bool stop_at_eol, Chunk *chunk);
-void consume_line(std::string_view line, Chunk *chunk);
-
-#ifdef _WIN32
-
 class File final
 {
 public:
     File(const std::filesystem::path &file_path)
     {
-        HANDLE file_handle = CreateFileA(
+        file_handle = CreateFileA(
             file_path.string().c_str(), GENERIC_READ, 0, nullptr,
-            OPEN_EXISTING, FILE_ATTRIBUTE_READONLY | FILE_FLAG_NO_BUFFERING | FILE_FLAG_OVERLAPPED,
+            OPEN_EXISTING,
+            FILE_ATTRIBUTE_READONLY | FILE_FLAG_NO_BUFFERING | FILE_FLAG_OVERLAPPED,
             nullptr);
 
         if (file_handle == INVALID_HANDLE_VALUE)
         {
+            std::cout << "Invalid file" << std::endl;
             return;
         }
 
@@ -67,8 +64,8 @@ private:
             file_handle = INVALID_HANDLE_VALUE;
         }
     }
-    HANDLE file_handle;
-    size_t file_size;
+    HANDLE file_handle{};
+    size_t file_size{};
 };
 
 struct Reader
@@ -95,7 +92,14 @@ struct Reader
         overlapped.OffsetHigh = static_cast<DWORD>(offset >> 32);
         bool success = ReadFile(file_handle, buffer, static_cast<DWORD>(size), nullptr, &overlapped);
         if (!success)
-            std::cout << "Reading block failed" << std::endl;
+        {
+            DWORD error = GetLastError();
+            // When IO is pending we just have to wait.
+            if (error != ERROR_IO_PENDING)
+            {
+                std::cout << "Reading block failed: " << GetLastError() << std::endl;
+            }
+        }
     }
 
     size_t await_result()
@@ -121,7 +125,8 @@ private:
  */
 std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::string &obj_path)
 {
-    std::filesystem::path file_path(obj_path);
+    std::filesystem::path rel_path(obj_path);
+    std::filesystem::path file_path = std::filesystem::absolute(rel_path);
     if (file_path.empty())
         std::cout << "Incorrect file path" << std::endl;
     File file(file_path);
@@ -132,7 +137,7 @@ std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::str
 
     int num_blocks = file.size() / block_size + (file.size() % block_size > 0);
 
-    if (file.size() > thread_threshhold)
+    if (false /* file.size() > thread_threshhold */)
     {
         unsigned int num_threads = std::thread::hardware_concurrency();
         int blocks_per_thread = num_blocks / num_threads;
@@ -168,13 +173,16 @@ std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::str
 
             threads.emplace_back(read_blocks, &file, begin, end, stop_at_eol, chunk);
         }
-        // TODO: Wait for threads to finish and merge results.
+        for (std::thread &thread : threads)
+            thread.join();
     }
     else
     {
         chunks.resize(1);
         read_blocks(&file, 0, num_blocks, false, &chunks.front());
     }
+
+    return merge(chunks);
 }
 
 void read_blocks(File *file, int begin, int end, bool stop_at_eol, Chunk *chunk)
@@ -189,16 +197,17 @@ void read_blocks(File *file, int begin, int end, bool stop_at_eol, Chunk *chunk)
     std::string_view line = std::string_view();
     std::string_view text = std::string_view();
     size_t buffer_size = block_size + max_line;
-    auto front_buffer = std::unique_ptr<char>(static_cast<char *>(malloc(buffer_size))).get();
-    auto back_buffer = std::unique_ptr<char>(static_cast<char *>(malloc(buffer_size))).get();
+    auto buffer1 = std::unique_ptr<char>(static_cast<char *>(malloc(buffer_size)));
+    auto buffer2 = std::unique_ptr<char>(static_cast<char *>(malloc(buffer_size)));
+    auto front_buffer = buffer1.get();
+    auto back_buffer = buffer2.get();
     size_t file_offset = begin * block_size;
 
     // Read the first block and save it for consumption.
-    Reader reader = Reader(*file);
-    reader.read_block(file_offset, block_size, front_buffer);
+    reader.read_block(file_offset, block_size, front_buffer + max_line);
     size_t bytes_read = reader.await_result();
     reached_eof = bytes_read < block_size;
-    text = std::string_view(front_buffer, bytes_read);
+    text = std::string_view(front_buffer + max_line, bytes_read);
 
     // If this is not the first overall block, throw away incomplete first line.
     if (begin_after_eol)
@@ -211,6 +220,8 @@ void read_blocks(File *file, int begin, int end, bool stop_at_eol, Chunk *chunk)
     // Iterate over the rest of the blocks.
     for (int i = begin; i < end; i++)
     {
+        if (i == 70)
+            std::cout << "shit happens" << std::endl;
         // The size of the last part of a block not in a full line.
         size_t remainder = size_t{};
         bool last_block = (i == end - 1) || reached_eof;
@@ -258,11 +269,11 @@ void read_blocks(File *file, int begin, int end, bool stop_at_eol, Chunk *chunk)
                 {
                     line = text;
                     consume_line(line, chunk);
-                    // We have reached the end of the block. Add incomplete line to
-                    // the start of the next buffer.
                 }
                 else
                 {
+                    // We have reached the end of the block. Add incomplete line to
+                    // the start of the next buffer.
                     remainder = text.size();
                     memcpy(back_buffer + max_line - remainder, text.data(), remainder);
                 }
@@ -293,21 +304,73 @@ void read_blocks(File *file, int begin, int end, bool stop_at_eol, Chunk *chunk)
 
 void consume_line(std::string_view line, Chunk *chunk)
 {
+    // Ignore line if empty.
     if (line.empty())
         return;
 
+    // We currently only need to support vertices (v) and faces (f)
     switch (line.front())
     {
     case 'v':
-        line.remove_prefix(2);
+        line.remove_prefix(1);
+
+        // Our vertices have only position and no extra information.
+        for (int i = 0; i < 3 && !line.empty(); i++)
+        {
+            trim_left(line);
+            float value = float();
+            auto [ptr, _] = std::from_chars(line.data(), line.data() + line.size(), value);
+            chunk->vertices.push_back(value);
+            size_t length = static_cast<size_t>(ptr - line.data());
+            line.remove_prefix(length);
+        }
         break;
     case 'f':
-        line.remove_prefix(2);
+        line.remove_prefix(1);
+        for (int i = 0; i < 3 && !line.empty(); i++)
+        {
+            trim_left(line);
+            unsigned int value = 0;
+            auto [ptr, _] = std::from_chars(line.data(), line.data() + line.size(), value);
+            chunk->faces.push_back(value - 1);
+            size_t length = static_cast<size_t>(ptr - line.data());
+            line.remove_prefix(length);
+        }
         break;
     }
 }
 
-#elif
+std::pair<std::vector<float>, std::vector<unsigned int>> merge(std::vector<Chunk> chunks)
+{
+    size_t vertices_length = size_t{};
+    size_t faces_length = size_t{};
+    std::vector<float> vertices;
+    std::vector<unsigned int> faces;
+
+    for (Chunk chunk : chunks)
+    {
+        vertices_length += chunk.vertices.size();
+        faces_length += chunk.faces.size();
+    }
+
+    vertices.resize(vertices_length);
+    faces.resize(faces_length);
+
+    vertices_length = 0;
+    faces_length = 0;
+
+    for (Chunk chunk : chunks)
+    {
+        std::move(chunk.vertices.begin(), chunk.vertices.end(), vertices.begin() + vertices_length);
+        std::move(chunk.faces.begin(), chunk.faces.end(), faces.begin() + faces_length);
+        vertices_length += chunk.vertices.size();
+        faces_length += chunk.faces.size();
+    }
+
+    return std::make_pair(vertices, faces);
+}
+
+#else
 
 /**
  * @brief Read an obj file and return the vertices and faces.
@@ -315,10 +378,9 @@ void consume_line(std::string_view line, Chunk *chunk)
  * @param obj_path The relative path to the obj file.
  * @returns A pair consisting of the vertices and faces vector.
  */
-std::pair<std::vector<float>, std::vector<unsigned int>>
-read_obj(const std::string &obj_path)
+std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::string &obj_path)
 {
-    const std::vector<float> vertices;
+    std::vector<float> vertices;
     std::vector<unsigned int> faces;
 
     // Setup streams for reading obj file.

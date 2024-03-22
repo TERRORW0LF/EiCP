@@ -43,7 +43,8 @@ add_executable(XPBDCloth
         src/shader.cpp
         src/camera.h
         src/camera.cpp
-        src/obj_reader.hpp
+        src/obj_reader.h
+        src/obj_reader.cpp
 )
 
 target_include_directories(XPBDCloth PRIVATE dependencies C:/msys64/mingw64/include)
