@@ -256,6 +256,8 @@ void read_blocks(File *file, int begin, int end, bool stop_at_eol, Chunk *chunk)
             const char *eol = static_cast<const char *>(memchr(text.data(), '\n', max_line));
             if (eol != nullptr)
             {
+                assert(eol > text.data());
+                
                 size_t line_length = static_cast<size_t>(eol - text.data());
                 line = text.substr(0, line_length);
                 if (line.ends_with('\r'))
