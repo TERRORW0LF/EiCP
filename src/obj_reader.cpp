@@ -1,4 +1,5 @@
 #include "obj_reader.h"
+#include <cassert>
 
 constexpr void trim_left(std::string_view &text) noexcept
 {
@@ -260,6 +261,7 @@ void read_blocks(File *file, int begin, int end, bool stop_at_eol, Chunk *chunk)
                 if (line.ends_with('\r'))
                     line.remove_suffix(1);
 
+                assert(text.length() >= line_length + 1);
                 text.remove_prefix(line_length + 1);
             }
             else
