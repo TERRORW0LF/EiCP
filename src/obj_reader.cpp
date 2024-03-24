@@ -138,7 +138,7 @@ std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::str
 
     int num_blocks = file.size() / block_size + (file.size() % block_size > 0);
 
-    if (false /* file.size() > thread_threshhold */)
+    if (file.size() > thread_threshhold)
     {
         unsigned int num_threads = std::thread::hardware_concurrency();
         int blocks_per_thread = num_blocks / num_threads;
@@ -221,8 +221,6 @@ void read_blocks(File *file, int begin, int end, bool stop_at_eol, Chunk *chunk)
     // Iterate over the rest of the blocks.
     for (int i = begin; i < end; i++)
     {
-        if (i == 70)
-            std::cout << "shit happens" << std::endl;
         // The size of the last part of a block not in a full line.
         size_t remainder = size_t{};
         bool last_block = (i == end - 1) || reached_eof;
@@ -244,7 +242,9 @@ void read_blocks(File *file, int begin, int end, bool stop_at_eol, Chunk *chunk)
                 size_t line_length = static_cast<size_t>(eol - text.data());
                 line = text.substr(0, line_length);
                 if (line.ends_with('\r'))
+                {
                     line.remove_suffix(1);
+                }
 
                 consume_line(line, chunk);
             }
@@ -253,15 +253,17 @@ void read_blocks(File *file, int begin, int end, bool stop_at_eol, Chunk *chunk)
 
         while (!text.empty())
         {
-            const char *eol = static_cast<const char *>(memchr(text.data(), '\n', max_line));
+            const char *eol = static_cast<const char *>(memchr(text.data(), '\n', std::min(max_line, text.size())));
             if (eol != nullptr)
             {
                 assert(eol > text.data());
-                
+
                 size_t line_length = static_cast<size_t>(eol - text.data());
                 line = text.substr(0, line_length);
                 if (line.ends_with('\r'))
+                {
                     line.remove_suffix(1);
+                }
 
                 assert(text.length() >= line_length + 1);
                 text.remove_prefix(line_length + 1);
