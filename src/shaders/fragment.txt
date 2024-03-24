@@ -17,12 +17,19 @@ layout(location = 10) uniform float specular_strength;
 
 void main()
 {
+    // Set fragment norm based in front of back facing triangle.
+    vec3 norm;
+    if (gl_FrontFacing)
+        norm = fragment_norm;
+    else
+        norm = -fragment_norm;
+
     // Ambient lighting. The base light every object receives.
     vec3 ambient = ambient_strength * light_color;
 
     // Diffusion lighting. Highlights spots that are in the
     // direction of the active light source.
-    vec3 norm = normalize(fragment_norm);
+    norm = normalize(norm);
     // Set light direction. Since our normals point outwards
     // of the object, this vector needs to point from the object
     // to the light source.

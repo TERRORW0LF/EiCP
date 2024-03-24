@@ -243,7 +243,7 @@ void XPBDWindow::reset_cloth()
     // Create the cloth and give it a color.
     vec3 color = {1.0f, 0.0f, 0.0f};
 
-    cloth = std::make_unique<ClothMesh>("assets/cloth_3.obj", color);
+    cloth = std::make_unique<ClothMesh>("assets/cloth_1.obj", color);
 
     // Determine the model matrix for the cloth rotation and translation.
     position = {0.0f, 0.0f, 0.0f};
@@ -255,7 +255,7 @@ void XPBDWindow::reset_cloth()
     gravity.data[1] = -0.00001f;
     gravity.data[2] = 0.f;
 
-    // cloth_physics = std::make_unique<PhysicsEngine>(cloth.get(), gravity);
+    cloth_physics = std::make_unique<PhysicsEngine>(cloth.get(), gravity);
 }
 
 /**
@@ -266,10 +266,12 @@ void XPBDWindow::initialize_members()
     // Enable face culling. This will assume a counter
     // clockwise definition of triangles in the vertex buffer
     // and culls the backfacing side of the triangle.
-    glEnable(GL_CULL_FACE);
+    // glEnable(GL_CULL_FACE);
+
     // Enable depth testing. This will disregard fragments (pixels)
     // that are behind other pixels.
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
 
     // Set the background color of the window.
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
