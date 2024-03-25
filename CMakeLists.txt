@@ -19,8 +19,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 # Find packages go here.
 find_package(OpenGL REQUIRED)
-#find_package(GLUT REQUIRED)
-find_package(glfw3 3.4 REQUIRED)
+find_package(glfw3 REQUIRED)
 
 # Adding something we can run - Output name matches target name
 add_executable(XPBDCloth
@@ -52,6 +51,9 @@ target_include_directories(XPBDCloth PRIVATE dependencies C:/msys64/mingw64/incl
 target_link_libraries(XPBDCloth PRIVATE glfw OpenGL::GL)
 
 add_custom_command(TARGET ${PROJECT_NAME}  POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/glfw3.dll
+                ${CMAKE_CURRENT_BINARY_DIR}/glfw3.dll
         COMMAND ${CMAKE_COMMAND} -E copy_directory
                 ${CMAKE_CURRENT_SOURCE_DIR}/assets
                 ${CMAKE_CURRENT_BINARY_DIR}/assets
