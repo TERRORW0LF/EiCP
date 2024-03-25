@@ -27,6 +27,6 @@ const size_t block_size = 262144;
 // Maximum size of a line we account for (byte).
 const size_t max_line = 4096;
 
-#elif
+#else
 std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::string &obj_path);
 #endif
