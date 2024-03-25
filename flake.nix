@@ -25,7 +25,6 @@
 			cmake
 
 			# debugger
-			llvm.lldb
 			gdb
 
 			# fix headers not found
