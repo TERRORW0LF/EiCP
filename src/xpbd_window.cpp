@@ -270,6 +270,8 @@ void XPBDWindow::initialize_members()
 
     // Enable depth testing. This will disregard fragments (pixels)
     // that are behind other pixels.
+    glClearDepth(0.0f);
+    glDepthFunc(GL_GEQUAL);
     glEnable(GL_DEPTH_TEST);
 
     // Set the background color of the window.
