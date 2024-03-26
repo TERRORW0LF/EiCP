@@ -9,12 +9,13 @@
  * @param cloth Pointer to cloth which is to be simulated
  * @param _gravity Gravitational force to be simulated
  */
-PhysicsEngine::PhysicsEngine(ClothMesh *cloth, float3 _gravity) : cloth(cloth)
+PhysicsEngine::PhysicsEngine(ClothMesh *cloth, float3 _gravity, MountingType _mount) : cloth(cloth)
 {
     gravity = _gravity;
+    mount = _mount;
     velocity = std::vector<float3>(cloth->get_vertex_positions().size(), {0.f, 0.f, 0.f});
     old_position = std::vector<float3>(cloth->get_vertex_positions().size(), {0.0f, 0.0f, 0.0f});
-    substeps = 10;
+    substeps = 100;
     delta_time = 1.0f;
 }
 
@@ -38,9 +39,9 @@ void PhysicsEngine::update()
     std::vector<float3> vertex_positions = cloth->get_vertex_positions();
     float spacing = cloth->get_rest_distance();//0.01f;
     //spacing = 0.01f;
-    SpatialHashStructure structure(vertex_positions, spacing, 20 * vertex_positions.size());
     for (int i = 0; i < substeps; i++)
     {
+        SpatialHashStructure structure(vertex_positions, spacing, 20 * vertex_positions.size());
         update_step(vertex_positions, structure);
     }
     cloth->set_vertex_positions(vertex_positions);
@@ -53,7 +54,7 @@ void PhysicsEngine::update()
  */
 void PhysicsEngine::update_step(std::vector<float3>& vertex_positions, const SpatialHashStructure& structure)
 {
-    float time_counter = ((float)delta_time) / substeps;
+    float time_counter = ((float)delta_time) / (float)substeps;
 
     for (int vertex_counter = 0; vertex_counter < vertex_positions.size(); vertex_counter++)
     {
@@ -145,9 +146,28 @@ void PhysicsEngine::update_step(std::vector<float3>& vertex_positions, const Spa
 
     // Constraint: top left and top right must stay in place
     // This constraint is a simple position constraint that keeps the top left and top right vertices in place. Hence, the cloth will not fall down and we can see the effect of the other constraints.
-    unsigned int last = vertex_positions.size() - 1;
-    last = old_position.size()-1;
-    vertex_positions[last] = old_position[last];
+    
+    
+    if (mount == MountingType::CORNER_VERTEX) {
+        unsigned int last = vertex_positions.size() - 1;
+        last = old_position.size() - 1;
+        vertex_positions[last] = old_position[last];
+    }
+    else if (mount == MountingType::MIDDLE_VERTEX) {
+        int num_vertices_per_row = std::sqrt(vertex_positions.size() + 1);
+        unsigned int some = num_vertices_per_row / 2 + num_vertices_per_row * num_vertices_per_row / 2;
+        vertex_positions[some] = old_position[some];
+    }
+    else if (mount == MountingType::TOP_ROW) {
+        int num_vertices_per_row = std::sqrt(vertex_positions.size() + 1);
+        for (int i = num_vertices_per_row-1; i < vertex_positions.size(); i+= num_vertices_per_row) {
+            vertex_positions[i] = old_position[i];
+        }
+    }
+    else {
+        std::exit(999);
+    }
+
 
     // Update the velocity of each vertex by comparing the new position with the old position.
     for (int vertex_counter = 0; vertex_counter < vertex_positions.size(); vertex_counter++)
@@ -155,4 +175,33 @@ void PhysicsEngine::update_step(std::vector<float3>& vertex_positions, const Spa
         velocity[vertex_counter] = (vertex_positions[vertex_counter] - old_position[vertex_counter]) / time_counter;
     }
 
+}
+
+ConcurrentPhysicsEngine::ConcurrentPhysicsEngine(ClothMesh* cloth, float3 gravity, MountingType m)
+    : internal_engine(cloth, gravity, m)
+{
+    is_physics_computed.store(true);
+    auto worker_f = [&]() {
+        while (true) {
+            is_physics_computed.wait(true);//blocks until is_physics_computed turns to false
+
+            internal_engine.update();
+
+            is_physics_computed.store(true);
+            is_physics_computed.notify_one();
+        }
+        };
+
+    worker = std::jthread(worker_f);
+}
+
+void ConcurrentPhysicsEngine::update()
+{
+    is_physics_computed.store(false);
+    is_physics_computed.notify_one();
+}
+
+void ConcurrentPhysicsEngine::wait()
+{
+    is_physics_computed.wait(false);//blocks until is_physics_computed turns to true
 }

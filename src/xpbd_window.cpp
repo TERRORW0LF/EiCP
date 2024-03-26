@@ -1,4 +1,5 @@
 #include "xpbd_window.h"
+#include <cassert>
 
 /**
  * This function creates a glfw window and sets up the XPBD cloth simulation.
@@ -189,6 +190,25 @@ void XPBDWindow::handle_key_input(GLFWwindow *window, int key, int scancode, int
             reset_cloth();
         }
         break;
+    case GLFW_KEY_1:
+    case GLFW_KEY_2:
+    case GLFW_KEY_3:
+        if (action == GLFW_PRESS)
+        {
+            mounting_type = static_cast<MountingType>(key);
+            reset_cloth();
+        }
+        break;
+    case GLFW_KEY_8:
+    case GLFW_KEY_9:
+    case GLFW_KEY_0:
+        if (action == GLFW_PRESS)
+        {
+            mesh_id = key;
+            reset_cloth();
+        }
+        break;
+
         // Print the help text.
     case GLFW_KEY_H:
         if (action == GLFW_PRESS)
@@ -235,6 +255,18 @@ void XPBDWindow::print_help()
     std::cout << "f:   toggle wireframe" << std::endl;
     std::cout << "ESC: free the mouse" << std::endl;
 
+    std::cout << "   ---MOUNTING METHODS---" << std::endl
+        << "1: one corner" << std::endl
+        << "2: top row" << std::endl
+        << "3: a vertex within the cloth" << std::endl
+        << "   ---MOUNTING METHODS---" << std::endl;
+
+    std::cout << "   ---MESH RESOLUTIONS---" << std::endl
+        << "8: 10x10" << std::endl
+        << "9: 50x50" << std::endl
+        << "0: 100x100" << std::endl
+        << "   ---MESH RESOLUTIONS---" << std::endl;
+
     std::cout << "==============================" << std::endl;
 }
 
@@ -242,8 +274,19 @@ void XPBDWindow::reset_cloth()
 {
     // Create the cloth and give it a color.
     vec3 color = {1.0f, 0.0f, 0.0f};
-
-    cloth = std::make_unique<ClothMesh>("assets/cloth_100.obj", color);
+    if (mesh_id == GLFW_KEY_8) {
+        cloth = std::make_unique<ClothMesh>("assets/cloth_10.obj", color);
+    }
+    else if (mesh_id == GLFW_KEY_9) {
+        cloth = std::make_unique<ClothMesh>("assets/cloth_50.obj", color);
+    }
+    else if (mesh_id == GLFW_KEY_0) {
+        cloth = std::make_unique<ClothMesh>("assets/cloth_100.obj", color);
+    }
+    else {
+        assert(false);
+        std::exit(42);
+    }
 
     // Determine the model matrix for the cloth rotation and translation.
     position = {0.0f, 0.0f, 0.0f};
@@ -255,7 +298,13 @@ void XPBDWindow::reset_cloth()
     gravity.data[1] = -0.00001f;
     gravity.data[2] = 0.f;
 
-    cloth_physics = std::make_unique<PhysicsEngine>(cloth.get(), gravity);
+    MountingType m = static_cast<MountingType>(mounting_type);
+
+#ifdef USE_CONCURRENT_PHYSICS_ENGINE
+    cloth_physics = std::make_unique<ConcurrentPhysicsEngine>(cloth.get(), gravity, m);
+#else
+    cloth_physics = std::make_unique<PhysicsEngine>(cloth.get(), gravity, m);
+#endif
 }
 
 /**
@@ -277,6 +326,9 @@ void XPBDWindow::initialize_members()
     // Set the background color of the window.
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
+    mounting_type = MountingType::CORNER_VERTEX;
+    mesh_id = GLFW_KEY_8;
+
     // Set up the cloth in the scene.
     reset_cloth();
 
@@ -285,6 +337,8 @@ void XPBDWindow::initialize_members()
 
     simulate = false;
     draw_wire_frame = true;
+
+
 
     // Create a shader for the objects in the scene.
     shader = std::make_unique<Shader>("shaders/vertex.txt", "shaders/fragment.txt");
@@ -333,11 +387,6 @@ void XPBDWindow::update_window()
     // Update the view matrix
     view_matrix = camera->get_view();
 
-    if (simulate)
-    {
-        // Implements the physics engine.
-        cloth_physics->update();
-    }
 
     // Clear the background color buffer.
     // This sets the color to the one defined by glClearColor.
@@ -356,14 +405,27 @@ void XPBDWindow::update_window()
     glUniform1f(9, 0.5f);                // ambient_strength
     glUniform1f(10, 0.1f);               // specular_strength
 
+#ifdef USE_CONCURRENT_PHYSICS_ENGINE
+    if (simulate) {
+        cloth_physics->wait();
+    }
+#endif
+
     // Draw the cloth onto the screen.
     cloth->draw();
+
+    if (simulate)
+    {
+        // Implements the physics engine.
+        cloth_physics->update();
+    }
 
     // Gives the window the new buffer updated with glClear.
     glfwSwapBuffers(window);
 
     // Poll and consume all events for this frame.
     glfwPollEvents();
+
 }
 
 /**

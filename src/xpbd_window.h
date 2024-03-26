@@ -7,6 +7,9 @@
 #include "linear_algebra.h"
 #include "camera.h"
 
+
+//#define USE_CONCURRENT_PHYSICS_ENGINE
+
 class XPBDWindow
 {
 public:
@@ -34,7 +37,11 @@ public:
 	// current members:
 private:
 	std::unique_ptr<ClothMesh> cloth;
+#ifdef USE_CONCURRENT_PHYSICS_ENGINE
+	std::unique_ptr<ConcurrentPhysicsEngine> cloth_physics;
+#else
 	std::unique_ptr<PhysicsEngine> cloth_physics;
+#endif
 	std::unique_ptr<Shader> shader;
 	std::unique_ptr<Camera> camera;
 
@@ -52,6 +59,9 @@ private:
 	short forward;
 	short right;
 	short up;
+
+	MountingType mounting_type;
+	int mesh_id;
 
 
 	vec3 position;
