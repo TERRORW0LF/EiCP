@@ -207,12 +207,12 @@ void XPBDWindow::handle_key_input(GLFWwindow *window, int key, int scancode, int
             if (draw_wire_frame)
             {
                 draw_wire_frame = false;
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             }
             else
             {
                 draw_wire_frame = true;
-                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             }
         }
         break;
@@ -243,7 +243,7 @@ void XPBDWindow::reset_cloth()
     // Create the cloth and give it a color.
     vec3 color = {1.0f, 0.0f, 0.0f};
 
-    cloth = std::make_unique<ClothMesh>("assets/cloth_1.obj", color);
+    cloth = std::make_unique<ClothMesh>("assets/cloth_3.obj", color);
 
     // Determine the model matrix for the cloth rotation and translation.
     position = {0.0f, 0.0f, 0.0f};
@@ -318,6 +318,14 @@ void XPBDWindow::update_window()
     double curr_frame = glfwGetTime();
     delta_time = curr_frame - last_frame;
     last_frame = curr_frame;
+
+    if (curr_frame - last_fps_print >= 1.f) {
+        std::stringstream ss;
+        ss << "XPBD Cloth simulation FPS: " << 1 / delta_time;
+        glfwSetWindowTitle(window, ss.str().c_str());
+        last_fps_print = curr_frame;
+    }
+
 
     // Update the camera based on the movement.
     camera->update_movement(forward, right, up, delta_time);

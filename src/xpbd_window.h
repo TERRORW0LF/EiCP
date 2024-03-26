@@ -40,6 +40,7 @@ private:
 
 	double delta_time;
 	double last_frame;
+	double last_fps_print;
 
 	bool simulate;
 	bool first_mouse;
@@ -51,6 +52,7 @@ private:
 	short forward;
 	short right;
 	short up;
+
 
 	vec3 position;
 	vec3 rotation;

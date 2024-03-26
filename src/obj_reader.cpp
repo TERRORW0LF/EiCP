@@ -253,7 +253,7 @@ void read_blocks(File *file, int begin, int end, bool stop_at_eol, Chunk *chunk)
 
         while (!text.empty())
         {
-            const char *eol = static_cast<const char *>(memchr(text.data(), '\n', std::min(max_line, text.size())));
+            const char *eol = static_cast<const char *>(memchr(text.data(), '\n', min(max_line, text.size())));
             if (eol != nullptr)
             {
                 assert(eol > text.data());
