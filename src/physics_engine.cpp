@@ -2,6 +2,7 @@
 #include <time.h>
 #include <unordered_set>
 #include "spatial_hash_structure.h"
+#include <cassert>
 
 /**
  * @brief Construct a new Physics Engine:: Physics Engine object
@@ -74,57 +75,36 @@ void PhysicsEngine::update_step()
     // Constraint: Distance constraint
     // The distance constraint is a simple spring force between each pair of connected vertices. It allows the cloth to stretch and compress, but not to bend.
 
-    // iterate over triangles
-    // store processed edges in a set
-    // https://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-class-type-as-the-key
-    struct KeyHasher
-    {
-        std::size_t operator()(const RealVector<unsigned int, 2> &k) const
-        {
-            return ((std::hash<unsigned int>()(k.data[0]) ^ (std::hash<unsigned int>()(k.data[1]) << 1)) >> 1);
-        }
-    };
-
-    std::unordered_set<RealVector<unsigned int, 2>, KeyHasher> processed_edges;
-
-    float rest_distance = 0.15f;
+    float rest_distance = cloth->get_rest_distance();//0.15f;//between two particles
     float mass = 0.1f;
     float weight = 1 / mass;
 
-    for (const uint3 &triangle : cloth->get_triangles_ref())
-    {
-        for (int i = 0; i < 3; i++)
-        {
-            unsigned int v1 = triangle.data[i];
-            unsigned int v2 = triangle.data[(i + 1) % 3];
-            RealVector<unsigned int, 2> edge_index;
-            edge_index.data[0] = v1;
-            edge_index.data[1] = v2;
-            if (processed_edges.contains(edge_index))
-                continue;
+    const auto & unique_edges = cloth->get_unique_edges_ref();
+    for (const auto& edge : unique_edges) {
+        unsigned int v1 = edge.data[0];
+        unsigned int v2 = edge.data[1];
 
-            float3 x1 = vertex_positions[v1];
-            float3 x2 = vertex_positions[v2];
+        float3 x1 = vertex_positions[v1];
+        float3 x2 = vertex_positions[v2];
 
-            float3 delta_x1 = x2 - x1;
-            float length = delta_x1.length();
-            delta_x1 /= length;
-            delta_x1 *= (length - rest_distance);
+        float3 delta_x1 = x2 - x1;
+        float length = delta_x1.length();
+        delta_x1 /= length;
+        delta_x1 *= (length - rest_distance);
 
-            float3 delta_x2 = delta_x1;
+        float3 delta_x2 = delta_x1;
 
-            delta_x1 *= weight / (weight + weight);
-            delta_x2 *= -weight / (weight + weight);
+        delta_x1 *= weight / (weight + weight);
+        delta_x2 *= -weight / (weight + weight);
 
-            vertex_positions[v1] += delta_x1;
-            vertex_positions[v2] += delta_x2;
-
-            processed_edges.insert(edge_index);
-        }
+        vertex_positions[v1] += delta_x1;
+        vertex_positions[v2] += delta_x2;
     }
 
+    float particle_radius = rest_distance / 3.f;
+    //particle_radius = 0.05f; 
+    assert(particle_radius <= rest_distance / 2.f);
     // Constraint: Self collission
-    float particle_radius = 0.05f;
     // iterate over vertices
     // iterate over neighboring cells
     // iterate over vertices in that cell

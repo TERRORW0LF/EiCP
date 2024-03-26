@@ -243,7 +243,7 @@ void XPBDWindow::reset_cloth()
     // Create the cloth and give it a color.
     vec3 color = {1.0f, 0.0f, 0.0f};
 
-    cloth = std::make_unique<ClothMesh>("assets/cloth_3.obj", color);
+    cloth = std::make_unique<ClothMesh>("assets/cloth_100.obj", color);
 
     // Determine the model matrix for the cloth rotation and translation.
     position = {0.0f, 0.0f, 0.0f};
