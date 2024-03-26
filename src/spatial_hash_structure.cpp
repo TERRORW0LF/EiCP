@@ -46,7 +46,7 @@ SpatialHashStructure::SpatialHashStructure(const std::vector<float3> &vertices, 
  * @param v The vertex to be hashed
  * @return unsigned int The hash index
  */
-unsigned int SpatialHashStructure::compute_hash_index(const float3 &v)
+unsigned int SpatialHashStructure::compute_hash_index(const float3 &v) const
 {
 	int x = std::floor(v.data[0] / spacing);
 	int y = std::floor(v.data[1] / spacing);
@@ -64,7 +64,7 @@ unsigned int SpatialHashStructure::compute_hash_index(const float3 &v)
  * @param index index to be hashed
  * @return unsigned int hashed index
  */
-unsigned int SpatialHashStructure::hash(int3 index)
+unsigned int SpatialHashStructure::hash(int3 index) const
 {
 	int v = (index.data[0] * 92837111) ^ (index.data[1] * 689287499) ^ (index.data[2] * 283923481);
 	v = std::abs(v) % (table_size - 1);
@@ -77,7 +77,7 @@ unsigned int SpatialHashStructure::hash(int3 index)
  * @param v The vertex to compute the neighbors of
  * @return std::vector<unsigned int> The neighboring cells
  */
-std::vector<unsigned int> SpatialHashStructure::compute_neighbor_cells(const float3 &v)
+std::vector<unsigned int> SpatialHashStructure::compute_neighbor_cells(const float3 &v) const
 {
 	std::vector<unsigned int> neighbors;
 	neighbors.reserve(27);
@@ -108,7 +108,7 @@ std::vector<unsigned int> SpatialHashStructure::compute_neighbor_cells(const flo
  * @param cell_idx The cell index to get the particle range of
  * @return std::pair<unsigned int, unsigned int> The particle range in the cell
  */
-std::pair<unsigned int, unsigned int> SpatialHashStructure::get_particle_range_in_cell(unsigned int cell_idx)
+std::pair<unsigned int, unsigned int> SpatialHashStructure::get_particle_range_in_cell(unsigned int cell_idx) const
 {
 	assert(cell_idx < table.size() + 1);
 	return std::pair<unsigned int, unsigned int>(table[cell_idx], table[cell_idx + 1]);

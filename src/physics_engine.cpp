@@ -1,7 +1,6 @@
 #include "physics_engine.h"
 #include <time.h>
 #include <unordered_set>
-#include "spatial_hash_structure.h"
 #include <cassert>
 
 /**
@@ -36,10 +35,15 @@ void PhysicsEngine::update()
     delta_time = 10.f;
     last_update = current_time;
 
+    std::vector<float3> vertex_positions = cloth->get_vertex_positions();
+    float spacing = cloth->get_rest_distance();//0.01f;
+    //spacing = 0.01f;
+    SpatialHashStructure structure(vertex_positions, spacing, 20 * vertex_positions.size());
     for (int i = 0; i < substeps; i++)
     {
-        update_step();
+        update_step(vertex_positions, structure);
     }
+    cloth->set_vertex_positions(vertex_positions);
 }
 
 /**
@@ -47,12 +51,9 @@ void PhysicsEngine::update()
  * In this function, the physics engine is updated by a single step. This function is called by the update function.
  * Here, the physics engine updates the position of the cloth vertices based on the velocity and gravity. Afterwards, the physics engine applies constraints to the cloth vertices to simulate the cloth's behavior.
  */
-void PhysicsEngine::update_step()
+void PhysicsEngine::update_step(std::vector<float3>& vertex_positions, const SpatialHashStructure& structure)
 {
     float time_counter = ((float)delta_time) / substeps;
-    std::vector<float3> vertex_positions = cloth->get_vertex_positions(); // TODO move this out of the ministep
-
-    SpatialHashStructure structure(vertex_positions, 0.01f, 2 * vertex_positions.size());
 
     for (int vertex_counter = 0; vertex_counter < vertex_positions.size(); vertex_counter++)
     {
@@ -154,5 +155,4 @@ void PhysicsEngine::update_step()
         velocity[vertex_counter] = (vertex_positions[vertex_counter] - old_position[vertex_counter]) / time_counter;
     }
 
-    cloth->set_vertex_positions(vertex_positions);
 }

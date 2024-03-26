@@ -13,14 +13,14 @@ private:
 	std::vector<unsigned int> particles;
 	float spacing;
 
-	unsigned int compute_hash_index(const float3 &v);
-	unsigned int hash(int3 index);
+	unsigned int compute_hash_index(const float3 &v) const;
+	unsigned int hash(int3 index) const;
 
 public:
-	std::vector<unsigned int> compute_neighbor_cells(const float3 &v);
-	std::pair<unsigned int, unsigned int> get_particle_range_in_cell(unsigned int particle_idx);
+	std::vector<unsigned int> compute_neighbor_cells(const float3 &v) const;
+	std::pair<unsigned int, unsigned int> get_particle_range_in_cell(unsigned int particle_idx) const;
 
-	inline const std::vector<unsigned int> &get_particles_arr()
+	inline const std::vector<unsigned int> &get_particles_arr() const
 	{
 		return particles;
 	}

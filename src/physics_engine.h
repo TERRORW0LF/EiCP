@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include "algebraic_types.h"
+#include "spatial_hash_structure.h"
 
 class PhysicsEngine
 {
@@ -19,7 +20,7 @@ private:
     std::vector<float3> old_position;
     int substeps;
     float delta_time;
-    void update_step();
+    void update_step(std::vector<float3>& vertex_positions, const SpatialHashStructure& structure);
 
     clock_t last_update = 0;
 

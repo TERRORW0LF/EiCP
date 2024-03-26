@@ -2,6 +2,7 @@
 #include <array>
 #include <cmath>
 #include <type_traits>
+#include <xmmintrin.h>
 
 template <typename type, unsigned int dim>
 class RealVector
