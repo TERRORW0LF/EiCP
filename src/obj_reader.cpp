@@ -1,6 +1,11 @@
 #include "obj_reader.h"
 #include <cassert>
 
+/**
+ * @param text The text to trim.
+ *
+ * @brief Trims a text in place of its whitespace at the start.
+ */
 constexpr void trim_left(std::string_view &text) noexcept
 {
     size_t i = 0;
@@ -14,6 +19,8 @@ constexpr void trim_left(std::string_view &text) noexcept
     text.remove_prefix(i);
 }
 
+// File and Reader classes are OS dependant.
+// We currently only support Windows.
 #ifdef _WIN32
 struct Chunk
 {
@@ -26,6 +33,8 @@ class File final
 public:
     File(const std::filesystem::path &file_path)
     {
+        // Create a file with read permissions and allow multiple readers
+        // to read at once.
         file_handle = CreateFileA(
             file_path.string().c_str(), GENERIC_READ, 0, nullptr,
             OPEN_EXISTING,
@@ -38,6 +47,7 @@ public:
             return;
         }
 
+        // Get the file size
         LARGE_INTEGER size = LARGE_INTEGER{};
         if (!GetFileSizeEx(file_handle, &size))
         {
@@ -46,6 +56,7 @@ public:
         }
         file_size = static_cast<size_t>(size.QuadPart);
     }
+    // Override constructors and destructors
     File(const File &) = delete;
     File &operator=(const File &) = delete;
     File(File &&) = delete;
@@ -73,6 +84,7 @@ struct Reader
 {
     Reader(const File &file)
     {
+        // Create a read handle.
         read_handle = CreateEventA(nullptr, FALSE, FALSE, nullptr);
         if (read_handle == INVALID_HANDLE_VALUE)
             std::cout << "Cant't read blocks" << std::endl;
@@ -86,6 +98,13 @@ struct Reader
             CloseHandle(read_handle);
     }
 
+    /**
+     * @param offset The file offset to start reading at.
+     * @param size The amount of bytes to read.
+     * @param buffer The buffer to write the result into.
+     *
+     * @brief Asynchronously read a part of the file connected to the reader.
+     */
     void read_block(size_t offset, size_t size, char *buffer)
     {
         overlapped.hEvent = read_handle;
@@ -103,6 +122,11 @@ struct Reader
         }
     }
 
+    /**
+     * @returns The number of bytes read.
+     *
+     * @brief Waits for the last read to finish.
+     */
     size_t await_result()
     {
         DWORD bytes_read = DWORD{};
@@ -126,6 +150,7 @@ private:
  */
 std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::string &obj_path)
 {
+    // Get the full file path from the relative given path.
     std::filesystem::path rel_path(obj_path);
     std::filesystem::path file_path = std::filesystem::absolute(rel_path);
     if (file_path.empty())
@@ -134,12 +159,15 @@ std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::str
     if (!file)
         std::cout << "Can't open file" << std::endl;
 
+    // Prepare output vector and blocks.
     std::vector<Chunk> chunks = std::vector<Chunk>();
 
     int num_blocks = file.size() / block_size + (file.size() % block_size > 0);
 
+    // Use multithreading to speed up reading.
     if (file.size() > thread_threshhold)
     {
+        // Allocate blocks to threads.
         unsigned int num_threads = std::thread::hardware_concurrency();
         int blocks_per_thread = num_blocks / num_threads;
         int blocks_remain = num_blocks - (num_threads * blocks_per_thread);
@@ -164,6 +192,7 @@ std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::str
         chunks.resize(num_tasks);
         threads.reserve(num_tasks);
 
+        // Create threads with corresponding blocks.
         for (int i = 0; i < tasks.size(); i++)
         {
             bool last = i == tasks.size() - 1;
@@ -174,6 +203,8 @@ std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::str
 
             threads.emplace_back(read_blocks, &file, begin, end, stop_at_eol, chunk);
         }
+
+        // Wait for all threads to finish.
         for (std::thread &thread : threads)
             thread.join();
     }
@@ -183,6 +214,7 @@ std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::str
         read_blocks(&file, 0, num_blocks, false, &chunks.front());
     }
 
+    // Merge the result of all threads.
     return merge(chunks);
 }
 
@@ -346,6 +378,12 @@ void consume_line(std::string_view line, Chunk *chunk)
     }
 }
 
+/**
+ * @param chunks The individual results to combine.
+ * @returns The combined chunks.
+ *
+ * @brief Combines chunks such that the structure of the mesh is preserved.
+ */
 std::pair<std::vector<float>, std::vector<unsigned int>> merge(std::vector<Chunk> chunks)
 {
     size_t vertices_length = size_t{};
@@ -367,6 +405,8 @@ std::pair<std::vector<float>, std::vector<unsigned int>> merge(std::vector<Chunk
 
     for (Chunk chunk : chunks)
     {
+        // We can just add the chunk to the end bc blocks in a chunk and the chunks
+        // itself are in ascending order.
         std::move(chunk.vertices.begin(), chunk.vertices.end(), vertices.begin() + vertices_length);
         std::move(chunk.faces.begin(), chunk.faces.end(), faces.begin() + faces_length);
         vertices_length += chunk.vertices.size();
