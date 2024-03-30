@@ -35,10 +35,10 @@ private:
 
     // the rest distance between two nodes
     // computed as the average edge length
-    float rest_distance;
+    std::vector<float> rest_distance;
 
 public:
-    float get_rest_distance();
+    std::vector<float> get_rest_distance();
 
     std::vector<float3> get_vertex_positions() const;
     // this will invalidate the vertex positions array
@@ -46,6 +46,6 @@ public:
 
     // topology remains unchanged, so we dont need a setter!
     std::vector<uint3> get_triangles() const;
-    const std::vector<uint3>& get_triangles_ref() const;
-    const std::vector<RealVector<unsigned int, 2>>& get_unique_edges_ref() const;
+    const std::vector<uint3> &get_triangles_ref() const;
+    const std::vector<RealVector<unsigned int, 2>> &get_unique_edges_ref() const;
 };

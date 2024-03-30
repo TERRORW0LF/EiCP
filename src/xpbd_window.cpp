@@ -199,6 +199,7 @@ void XPBDWindow::handle_key_input(GLFWwindow *window, int key, int scancode, int
             reset_cloth();
         }
         break;
+    case GLFW_KEY_7:
     case GLFW_KEY_8:
     case GLFW_KEY_9:
     case GLFW_KEY_0:
@@ -256,16 +257,16 @@ void XPBDWindow::print_help()
     std::cout << "ESC: free the mouse" << std::endl;
 
     std::cout << "   ---MOUNTING METHODS---" << std::endl
-        << "1: one corner" << std::endl
-        << "2: top row" << std::endl
-        << "3: a vertex within the cloth" << std::endl
-        << "   ---MOUNTING METHODS---" << std::endl;
+              << "1: one corner" << std::endl
+              << "2: top row" << std::endl
+              << "3: a vertex within the cloth" << std::endl
+              << "   ---MOUNTING METHODS---" << std::endl;
 
     std::cout << "   ---MESH RESOLUTIONS---" << std::endl
-        << "8: 10x10" << std::endl
-        << "9: 50x50" << std::endl
-        << "0: 100x100" << std::endl
-        << "   ---MESH RESOLUTIONS---" << std::endl;
+              << "8: 10x10" << std::endl
+              << "9: 50x50" << std::endl
+              << "0: 100x100" << std::endl
+              << "   ---MESH RESOLUTIONS---" << std::endl;
 
     std::cout << "==============================" << std::endl;
 }
@@ -274,16 +275,24 @@ void XPBDWindow::reset_cloth()
 {
     // Create the cloth and give it a color.
     vec3 color = {1.0f, 0.0f, 0.0f};
-    if (mesh_id == GLFW_KEY_8) {
+    if (mesh_id == GLFW_KEY_7)
+    {
+        cloth = std::make_unique<ClothMesh>("assets/cloth_50_smooth.obj", color);
+    }
+    else if (mesh_id == GLFW_KEY_8)
+    {
         cloth = std::make_unique<ClothMesh>("assets/cloth_10.obj", color);
     }
-    else if (mesh_id == GLFW_KEY_9) {
+    else if (mesh_id == GLFW_KEY_9)
+    {
         cloth = std::make_unique<ClothMesh>("assets/cloth_50.obj", color);
     }
-    else if (mesh_id == GLFW_KEY_0) {
+    else if (mesh_id == GLFW_KEY_0)
+    {
         cloth = std::make_unique<ClothMesh>("assets/cloth_100.obj", color);
     }
-    else {
+    else
+    {
         assert(false);
         std::exit(42);
     }
@@ -295,7 +304,7 @@ void XPBDWindow::reset_cloth()
 
     float3 gravity;
     gravity.data[0] = 0.f;
-    gravity.data[1] = -0.00001f;
+    gravity.data[1] = -9.81f;
     gravity.data[2] = 0.f;
 
     MountingType m = static_cast<MountingType>(mounting_type);
@@ -338,8 +347,6 @@ void XPBDWindow::initialize_members()
     simulate = false;
     draw_wire_frame = true;
 
-
-
     // Create a shader for the objects in the scene.
     shader = std::make_unique<Shader>("shaders/vertex.txt", "shaders/fragment.txt");
 
@@ -373,20 +380,19 @@ void XPBDWindow::update_window()
     delta_time = curr_frame - last_frame;
     last_frame = curr_frame;
 
-    if (curr_frame - last_fps_print >= 1.f) {
+    if (curr_frame - last_fps_print >= 1.f)
+    {
         std::stringstream ss;
         ss << "XPBD Cloth simulation FPS: " << 1 / delta_time;
         glfwSetWindowTitle(window, ss.str().c_str());
         last_fps_print = curr_frame;
     }
 
-
     // Update the camera based on the movement.
     camera->update_movement(forward, right, up, delta_time);
 
     // Update the view matrix
     view_matrix = camera->get_view();
-
 
     // Clear the background color buffer.
     // This sets the color to the one defined by glClearColor.
@@ -406,7 +412,8 @@ void XPBDWindow::update_window()
     glUniform1f(10, 0.1f);               // specular_strength
 
 #ifdef USE_CONCURRENT_PHYSICS_ENGINE
-    if (simulate) {
+    if (simulate)
+    {
         cloth_physics->wait();
     }
 #endif
@@ -425,7 +432,6 @@ void XPBDWindow::update_window()
 
     // Poll and consume all events for this frame.
     glfwPollEvents();
-
 }
 
 /**

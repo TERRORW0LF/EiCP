@@ -52,18 +52,17 @@ ClothMesh::ClothMesh(const std::string &cloth_path, vec3 color)
     std::vector<float3> temp_normals;
     compute_normals(temp_normals);
 
-
-    //construct list of edges
-    // https://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-class-type-as-the-key
+    // construct list of edges
+    //  https://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-class-type-as-the-key
     struct KeyHasher
     {
-        std::size_t operator()(const RealVector<unsigned int, 2>& k) const
+        std::size_t operator()(const RealVector<unsigned int, 2> &k) const
         {
             return ((std::hash<unsigned int>()(k.data[0]) ^ (std::hash<unsigned int>()(k.data[1]) << 1)) >> 1);
         }
     };
     std::unordered_set<RealVector<unsigned int, 2>, KeyHasher> temp_unique_edges;
-    for (const uint3& triangle : triangles)
+    for (const uint3 &triangle : triangles)
     {
         for (int i = 0; i < 3; i++)
         {
@@ -79,42 +78,40 @@ ClothMesh::ClothMesh(const std::string &cloth_path, vec3 color)
         }
     }
 
-    double sum_of_distances = 0.0;
-
-    unique_edges.reserve(temp_unique_edges.size());
-    for (const auto& a : temp_unique_edges) {
-        unique_edges.push_back(a);
-
-        float3 x1 = vertex_positions[a.data[0]];
-        float3 x2 = vertex_positions[a.data[1]];
-        float3 delta_x1 = x2 - x1;
-        float length = delta_x1.length();
-        sum_of_distances += length;
-    }
-    rest_distance = sum_of_distances / (float) unique_edges.size();
-
     int num_vertices_per_row = std::sqrt(vertex_positions.size() + 1);
-    for (const auto& a : temp_unique_edges) {
+    for (const auto &a : temp_unique_edges)
+    {
 
         auto v1 = a.data[0];
         auto v2 = a.data[1];
 
         auto index_dist = std::abs((int)(v1 - v2));
 
-        if (index_dist == 1) {
+        if (index_dist == 1)
+        {
             unique_springs.push_back(a);
+            float3 x1 = vertex_positions[v1];
+            float3 x2 = vertex_positions[v2];
+            float3 delta_x1 = x2 - x1;
+            float length = delta_x1.length();
+            rest_distance.push_back(length);
         }
-        else if (index_dist == num_vertices_per_row - 1) {
+        else if (index_dist == num_vertices_per_row - 1)
+        {
             continue;
         }
-        else {
+        else
+        {
             assert(index_dist == num_vertices_per_row);
             unique_springs.push_back(a);
+            unique_springs.push_back(a);
+            float3 x1 = vertex_positions[v1];
+            float3 x2 = vertex_positions[v2];
+            float3 delta_x1 = x2 - x1;
+            float length = delta_x1.length();
+            rest_distance.push_back(length);
         }
     }
-
-
-
 
     // Holds vertex arrays and their attributes.
     glGenVertexArrays(1, &VAO);
@@ -229,7 +226,7 @@ void ClothMesh::compute_normals(std::vector<float3> &temp_normals)
     }
 }
 
-float ClothMesh::get_rest_distance()
+std::vector<float> ClothMesh::get_rest_distance()
 {
     return rest_distance;
 }
@@ -264,7 +261,7 @@ const std::vector<uint3> &ClothMesh::get_triangles_ref() const
     return triangles;
 }
 
-const std::vector<RealVector<unsigned int, 2>>& ClothMesh::get_unique_edges_ref() const
+const std::vector<RealVector<unsigned int, 2>> &ClothMesh::get_unique_edges_ref() const
 {
     return std::ref(unique_edges);
 }

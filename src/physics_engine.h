@@ -7,8 +7,12 @@
 #include "spatial_hash_structure.h"
 #include <condition_variable>
 
-enum MountingType { CORNER_VERTEX = GLFW_KEY_1, TOP_ROW = GLFW_KEY_2, MIDDLE_VERTEX = GLFW_KEY_3 };
-
+enum MountingType
+{
+    CORNER_VERTEX = GLFW_KEY_1,
+    TOP_ROW = GLFW_KEY_2,
+    MIDDLE_VERTEX = GLFW_KEY_3
+};
 
 class PhysicsEngine
 {
@@ -25,17 +29,17 @@ private:
     std::vector<float3> old_position;
     int substeps;
     float delta_time;
-    void update_step(std::vector<float3>& vertex_positions, const SpatialHashStructure& structure);
+    void update_step(std::vector<float3> &vertex_positions, const SpatialHashStructure &structure);
 
-    clock_t last_update = 0;
+    std::chrono::time_point<std::chrono::high_resolution_clock> last_update;
 
 public:
 };
 
-
-class ConcurrentPhysicsEngine {
+class ConcurrentPhysicsEngine
+{
 public:
-    ConcurrentPhysicsEngine(ClothMesh* cloth, float3 gravity, MountingType m);
+    ConcurrentPhysicsEngine(ClothMesh *cloth, float3 gravity, MountingType m);
     void update();
     void wait();
 
