@@ -104,7 +104,6 @@ ClothMesh::ClothMesh(const std::string &cloth_path, vec3 color)
         {
             assert(index_dist == num_vertices_per_row);
             unique_springs.push_back(a);
-            unique_springs.push_back(a);
             float3 x1 = vertex_positions[v1];
             float3 x2 = vertex_positions[v2];
             float3 delta_x1 = x2 - x1;
@@ -261,9 +260,9 @@ const std::vector<uint3> &ClothMesh::get_triangles_ref() const
     return triangles;
 }
 
-const std::vector<RealVector<unsigned int, 2>> &ClothMesh::get_unique_edges_ref() const
+const std::vector<RealVector<unsigned int, 2>> &ClothMesh::get_unique_springs_ref() const
 {
-    return std::ref(unique_edges);
+    return std::ref(unique_springs);
 }
 
 /**

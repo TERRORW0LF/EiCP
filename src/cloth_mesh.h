@@ -28,9 +28,8 @@ private:
     void compute_and_store_normals();
     void compute_normals(std::vector<float3> &out);
 
-    std::vector<RealVector<unsigned int, 2>> unique_edges;//unique edges
-    //subset of unique edges, containing only straight edges
-    //meaning that diagonal edges have been removed
+    // subset of unique edges, containing only straight edges
+    // meaning that diagonal edges have been removed
     std::vector<RealVector<unsigned int, 2>> unique_springs;
 
     // the rest distance between two nodes
@@ -47,5 +46,5 @@ public:
     // topology remains unchanged, so we dont need a setter!
     std::vector<uint3> get_triangles() const;
     const std::vector<uint3> &get_triangles_ref() const;
-    const std::vector<RealVector<unsigned int, 2>> &get_unique_edges_ref() const;
+    const std::vector<RealVector<unsigned int, 2>> &get_unique_springs_ref() const;
 };

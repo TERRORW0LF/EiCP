@@ -15,7 +15,7 @@ PhysicsEngine::PhysicsEngine(ClothMesh *cloth, float3 _gravity, MountingType _mo
     mount = _mount;
     velocity = std::vector<float3>(cloth->get_vertex_positions().size(), {0.f, 0.f, 0.f});
     old_position = std::vector<float3>(cloth->get_vertex_positions().size(), {0.0f, 0.0f, 0.0f});
-    substeps = 10;
+    substeps = 20;
     delta_time = 1.0f;
 }
 
@@ -36,7 +36,7 @@ void PhysicsEngine::update()
     last_update = current_time;
 
     std::vector<float3> vertex_positions = cloth->get_vertex_positions();
-    float spacing = 0.2f;
+    float spacing = cloth->get_rest_distance()[0];
     // spacing = 0.01f;
     for (int i = 0; i < substeps; i++)
     {
@@ -80,10 +80,10 @@ void PhysicsEngine::update_step(std::vector<float3> &vertex_positions, const Spa
     float mass = 0.1f;
     float weight = 1 / mass;
 
-    const auto &unique_edges = cloth->get_unique_edges_ref();
-    for (int i = 0; i < unique_edges.size(); i++)
+    const auto &unique_springs = cloth->get_unique_springs_ref();
+    for (int i = 0; i < unique_springs.size(); i++)
     {
-        const auto edge = unique_edges[i];
+        const auto edge = unique_springs[i];
         unsigned int v1 = edge.data[0];
         unsigned int v2 = edge.data[1];
 
