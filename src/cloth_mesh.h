@@ -28,7 +28,10 @@ private:
     void compute_and_store_normals();
     void compute_normals(std::vector<float3> &out);
 
-    std::vector<RealVector<unsigned int, 2>> unique_edges;
+    std::vector<RealVector<unsigned int, 2>> unique_edges;//unique edges
+    //subset of unique edges, containing only straight edges
+    //meaning that diagonal edges have been removed
+    std::vector<RealVector<unsigned int, 2>> unique_springs;
 
     // the rest distance between two nodes
     // computed as the average edge length

@@ -1,6 +1,7 @@
 #include "cloth_mesh.h"
 #include <cassert>
 #include <unordered_set>
+#include <cmath>
 
 std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::string &obj_path);
 
@@ -91,6 +92,27 @@ ClothMesh::ClothMesh(const std::string &cloth_path, vec3 color)
         sum_of_distances += length;
     }
     rest_distance = sum_of_distances / (float) unique_edges.size();
+
+    int num_vertices_per_row = std::sqrt(vertex_positions.size() + 1);
+    for (const auto& a : temp_unique_edges) {
+
+        auto v1 = a.data[0];
+        auto v2 = a.data[1];
+
+        auto index_dist = std::abs((int)(v1 - v2));
+
+        if (index_dist == 1) {
+            unique_springs.push_back(a);
+        }
+        else if (index_dist == num_vertices_per_row - 1) {
+            continue;
+        }
+        else {
+            assert(index_dist == num_vertices_per_row);
+            unique_springs.push_back(a);
+        }
+    }
+
 
 
 
