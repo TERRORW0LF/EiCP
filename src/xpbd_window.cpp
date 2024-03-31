@@ -96,6 +96,14 @@ void XPBDWindow::handle_mouse_input(GLFWwindow *window, double xpos, double ypos
     first_mouse = false;
 }
 
+/**
+ * @brief compute user input for mouse button event and translate it into camera movement.
+ * 
+ * @param window The glfw window associated with this simulation window.
+ * @param button The button associated with the event.
+ * @param action The event being triggered.
+ * @param mods The modifier keys being pressed.
+ */
 void XPBDWindow::handle_mouse_button_input(GLFWwindow *window, int button, int action, int mods)
 {
     switch (button)
@@ -240,6 +248,9 @@ void XPBDWindow::handle_key_input(GLFWwindow *window, int key, int scancode, int
     }
 }
 
+/**
+ * @brief Print the help text for the simulation.
+ */
 void XPBDWindow::print_help()
 {
     std::cout << "==============================" << std::endl;
@@ -271,6 +282,9 @@ void XPBDWindow::print_help()
     std::cout << "==============================" << std::endl;
 }
 
+/**
+ * @brief Reset the cloth simulation.
+ */
 void XPBDWindow::reset_cloth()
 {
     // Create the cloth and give it a color.
