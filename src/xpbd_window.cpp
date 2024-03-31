@@ -326,6 +326,7 @@ void XPBDWindow::print_help()
               << "   ---MOUNTING METHODS---" << std::endl;
 
     std::cout << "   ---MESH RESOLUTIONS---" << std::endl
+              << "7: 50x50 (no noise)" << std::endl
               << "8: 10x10" << std::endl
               << "9: 50x50" << std::endl
               << "0: 100x100" << std::endl
