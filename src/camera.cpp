@@ -41,7 +41,7 @@ mat4 Camera::get_view()
  */
 void Camera::update_movement(short forward, short right, short up, double delta)
 {
-    vec3 direction = this->forward * forward + this->right * right + global_up * up;
+    vec3 direction = (this->global_up % this->right) * forward + this->right * right + global_up * up;
     // Adjust for movement speed and current time step size.
     position += normalize(direction) * movement_speed * delta;
 }
