@@ -105,16 +105,74 @@ void PhysicsEngine::update_step(std::vector<float3> &vertex_positions, const Spa
 
         // Determine direction vector of spring and
         // set its length to the offset from the rest distance.
-        float3 delta_x1 = x2 - x1;
-        float length = delta_x1.length();
-        delta_x1 /= length;
-        delta_x1 *= (length - rest_distance[i]);
+        float3 delta = x2 - x1;
+        float length = delta.length();
+        delta /= length;
+        delta *= (length - rest_distance[i]);
 
-        float3 delta_x2 = delta_x1;
+        float3 delta_x1 = delta;
+        float3 delta_x2 = delta * -1;
 
         // Distribute the offset to both vertices based on their weight.
         delta_x1 *= mass2 / (mass1 + mass2);
-        delta_x2 *= -mass1 / (mass1 + mass2);
+        delta_x2 *= mass1 / (mass1 + mass2);
+
+        // Constraint: top left and top right must stay in place
+        // This constraint is a simple position constraint
+        // that keeps the top left and top right vertices in place.
+        // Hence, the cloth will not fall down and we can see the
+        // effect of the other constraints.
+        if (mount == MountingType::CORNER_VERTEX)
+        {
+            unsigned int last = vertex_positions.size() - 1;
+            std::cout << v1 << " " << v2 << " " << last << std::endl;
+            if (v1 == last)
+            {
+                delta_x1 *= 0;
+                delta_x2 = delta * -1;
+            }
+            else if (v2 == last)
+            {
+                delta_x1 = delta;
+                delta_x2 *= 0;
+            }
+        }
+        else if (mount == MountingType::MIDDLE_VERTEX)
+        {
+            int num_cols = std::sqrt(vertex_positions.size() + 1);
+            unsigned int middle = num_cols / 2 + num_cols * num_cols / 2;
+            if (v1 == middle)
+            {
+                delta_x1 *= 0;
+                delta_x2 = delta * -1;
+            }
+            else if (v2 == middle)
+            {
+                delta_x1 = delta;
+                delta_x2 *= 0;
+            }
+        }
+        else if (mount == MountingType::TOP_ROW)
+        {
+            int num_cols = std::sqrt(vertex_positions.size() + 1);
+            int low = vertex_positions.size() - 1 - num_cols;
+
+            if (v1 >= low)
+            {
+                delta_x1 *= 0;
+                delta_x2 = delta * -1;
+            }
+            if (v2 >= low)
+            {
+                delta_x1 = delta;
+                delta_x2 *= 0;
+            }
+            if (v2 >= low && v1 >= low)
+            {
+                delta_x1 = delta;
+                delta_x2 *= 0;
+            }
+        }
 
         vertex_positions[v1] += delta_x1;
         vertex_positions[v2] += delta_x2;
@@ -158,36 +216,6 @@ void PhysicsEngine::update_step(std::vector<float3> &vertex_positions, const Spa
                 particle_position -= (local_particle_pos * (0.5 * adjustment));
             }
         }
-    }
-
-    // Constraint: top left and top right must stay in place
-    // This constraint is a simple position constraint
-    // that keeps the top left and top right vertices in place.
-    // Hence, the cloth will not fall down and we can see the
-    // effect of the other constraints.
-    if (mount == MountingType::CORNER_VERTEX)
-    {
-        unsigned int last = vertex_positions.size() - 1;
-        last = old_position.size() - 1;
-        vertex_positions[last] = old_position[last];
-    }
-    else if (mount == MountingType::MIDDLE_VERTEX)
-    {
-        int num_cols = std::sqrt(vertex_positions.size() + 1);
-        unsigned int some = num_cols / 2 + num_cols * num_cols / 2;
-        vertex_positions[some] = old_position[some];
-    }
-    else if (mount == MountingType::TOP_ROW)
-    {
-        int num_cols = std::sqrt(vertex_positions.size() + 1);
-        for (int i = num_cols - 1; i < vertex_positions.size(); i += num_cols)
-        {
-            vertex_positions[i] = old_position[i];
-        }
-    }
-    else
-    {
-        std::exit(999);
     }
 
     // Update the velocity of each vertex by comparing the new position with the old position.
