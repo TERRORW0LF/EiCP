@@ -28,16 +28,20 @@ private:
     void compute_and_store_normals();
     void compute_normals(std::vector<float3> &out);
 
-    // subset of unique edges, containing only straight edges
+    // Subset of unique edges, containing only straight edges
     // meaning that diagonal edges have been removed
     std::vector<RealVector<unsigned int, 2>> unique_springs;
 
-    // the rest distance between two nodes
+    // The rest distance between two nodes
     // computed as the average edge length
     std::vector<float> rest_distance;
 
+    // The mass of the particles.
+    std::vector<float> mass;
+
 public:
-    std::vector<float> get_rest_distance();
+    const std::vector<float> &get_rest_distance_ref() const;
+    const std::vector<float> &get_mass_ref() const;
 
     std::vector<float3> get_vertex_positions() const;
     // this will invalidate the vertex positions array

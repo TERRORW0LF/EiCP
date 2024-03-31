@@ -40,7 +40,7 @@ void PhysicsEngine::update()
     last_update = current_time;
 
     std::vector<float3> vertex_positions = cloth->get_vertex_positions();
-    float spacing = cloth->get_rest_distance()[0];
+    float spacing = cloth->get_rest_distance_ref()[0];
 
     for (int i = 0; i < substeps; i++)
     {
@@ -87,20 +87,24 @@ void PhysicsEngine::update_step(std::vector<float3> &vertex_positions, const Spa
     // Constraint: Distance constraint
     // The distance constraint is a simple spring force between each pair of connected vertices.
     // It allows the cloth to stretch and compress, but not to bend.
-    std::vector<float> rest_distance = cloth->get_rest_distance();
-    float mass = 0.1f;
-    float weight = 1 / mass;
+    std::vector<float> rest_distance = cloth->get_rest_distance_ref();
+    std::vector<float> mass = cloth->get_mass_ref();
 
     const auto &springs = cloth->get_unique_springs_ref();
     for (int i = 0; i < springs.size(); i++)
     {
+        // Get vertices of the edge.
         const auto edge = springs[i];
         unsigned int v1 = edge.data[0];
         unsigned int v2 = edge.data[1];
 
         float3 x1 = vertex_positions[v1];
         float3 x2 = vertex_positions[v2];
+        float mass1 = mass[v1];
+        float mass2 = mass[v2];
 
+        // Determine direction vector of spring and
+        // set its length to the offset from the rest distance.
         float3 delta_x1 = x2 - x1;
         float length = delta_x1.length();
         delta_x1 /= length;
@@ -108,57 +112,59 @@ void PhysicsEngine::update_step(std::vector<float3> &vertex_positions, const Spa
 
         float3 delta_x2 = delta_x1;
 
-        delta_x1 *= weight / (weight + weight);
-        delta_x2 *= -weight / (weight + weight);
+        // Distribute the offset to both vertices based on their weight.
+        delta_x1 *= mass2 / (mass1 + mass2);
+        delta_x2 *= -mass1 / (mass1 + mass2);
 
         vertex_positions[v1] += delta_x1;
         vertex_positions[v2] += delta_x2;
     }
 
-    float particle_radius = rest_distance[0] / 3.f;
-    // particle_radius = 0.05f;
-    assert(particle_radius <= rest_distance[0] / 2.f);
     // Constraint: Self collission
     // iterate over vertices
     // iterate over neighboring cells
     // iterate over vertices in that cell
     // if they are too close to each other -> push them apart
-    for (int v_i = 0; v_i < vertex_positions.size(); v_i++)
-    {
-        auto &v_p = vertex_positions[v_i];
-        auto neighbor_cells = structure.compute_neighbor_cells(v_p);
-        for (int n : neighbor_cells)
-        {
-            auto [first, last] = structure.get_particle_range_in_cell(n);
-            for (auto neighbor_particle = first; neighbor_particle < last; neighbor_particle++)
-            {
-                auto neighbor_particle_index = structure.get_particles_arr()[neighbor_particle];
-                auto &neighbor_particle_position = vertex_positions[neighbor_particle_index];
+    float particle_radius = rest_distance[0] / 3.f;
 
-                auto v_p_minus_neighbor_particle_position = v_p - neighbor_particle_position;
-                auto v_p_minus_neighbor_particle_position_length = v_p_minus_neighbor_particle_position.length();
-                if (v_p_minus_neighbor_particle_position_length > 2 * particle_radius)
+    for (int i = 0; i < vertex_positions.size(); i++)
+    {
+        auto &vertex_pos = vertex_positions[i];
+        auto neighbor_cells = structure.compute_neighbor_cells(vertex_pos);
+        for (int neighbor_cell : neighbor_cells)
+        {
+            auto [first, last] = structure.get_particle_range_in_cell(neighbor_cell);
+            for (auto j = first; j < last; j++)
+            {
+                auto particle_index = structure.get_particles_arr()[j];
+                auto &particle_position = vertex_positions[particle_index];
+
+                auto local_particle_pos = vertex_pos - particle_position;
+                auto local_length = local_particle_pos.length();
+                if (local_length > 2 * particle_radius)
                     continue;
-                if (v_i == neighbor_particle_index)
+                if (i == particle_index)
                     continue;
 
                 // particles are too close!
                 // do some computation to push them apart!
 
                 // normalize
-                v_p_minus_neighbor_particle_position /= v_p_minus_neighbor_particle_position_length;
+                local_particle_pos /= local_length;
 
-                float length_to_push_apart = 2 * particle_radius - v_p_minus_neighbor_particle_position_length;
+                float adjustment = 2 * particle_radius - local_length;
 
-                v_p += (v_p_minus_neighbor_particle_position * (0.5 * length_to_push_apart));
-                neighbor_particle_position -= (v_p_minus_neighbor_particle_position * (0.5 * length_to_push_apart));
+                vertex_pos += (local_particle_pos * (0.5 * adjustment));
+                particle_position -= (local_particle_pos * (0.5 * adjustment));
             }
         }
     }
 
     // Constraint: top left and top right must stay in place
-    // This constraint is a simple position constraint that keeps the top left and top right vertices in place. Hence, the cloth will not fall down and we can see the effect of the other constraints.
-
+    // This constraint is a simple position constraint
+    // that keeps the top left and top right vertices in place.
+    // Hence, the cloth will not fall down and we can see the
+    // effect of the other constraints.
     if (mount == MountingType::CORNER_VERTEX)
     {
         unsigned int last = vertex_positions.size() - 1;
@@ -167,14 +173,14 @@ void PhysicsEngine::update_step(std::vector<float3> &vertex_positions, const Spa
     }
     else if (mount == MountingType::MIDDLE_VERTEX)
     {
-        int num_vertices_per_row = std::sqrt(vertex_positions.size() + 1);
-        unsigned int some = num_vertices_per_row / 2 + num_vertices_per_row * num_vertices_per_row / 2;
+        int num_cols = std::sqrt(vertex_positions.size() + 1);
+        unsigned int some = num_cols / 2 + num_cols * num_cols / 2;
         vertex_positions[some] = old_position[some];
     }
     else if (mount == MountingType::TOP_ROW)
     {
-        int num_vertices_per_row = std::sqrt(vertex_positions.size() + 1);
-        for (int i = num_vertices_per_row - 1; i < vertex_positions.size(); i += num_vertices_per_row)
+        int num_cols = std::sqrt(vertex_positions.size() + 1);
+        for (int i = num_cols - 1; i < vertex_positions.size(); i += num_cols)
         {
             vertex_positions[i] = old_position[i];
         }

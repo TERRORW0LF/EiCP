@@ -28,7 +28,8 @@ ClothMesh::ClothMesh(const std::string &cloth_path, vec3 color)
     }
 
     assert(vertices.size() % 3 == 0);
-    vertex_positions.reserve(vertices.size() % 3);
+    vertex_positions.reserve(vertices.size() / 3);
+    mass.reserve(vertices.size() / 3);
     for (int i = 0; i < vertices.size(); i += 3)
     {
         float3 v;
@@ -36,6 +37,7 @@ ClothMesh::ClothMesh(const std::string &cloth_path, vec3 color)
         v.data[1] = vertices[i + 1];
         v.data[2] = vertices[i + 2];
         vertex_positions.push_back(v);
+        mass.push_back(0.1f);
     }
     vertex_positions_invalid = false;
 
@@ -225,7 +227,24 @@ void ClothMesh::compute_normals(std::vector<float3> &temp_normals)
     }
 }
 
-std::vector<float> ClothMesh::get_rest_distance()
+/**
+ * @returns A pointer to the mass vector.
+ *
+ * @brief Gets the vector containing particle masses.
+ * Each mass is mapped to a particle / vertex by its index.
+ */
+const std::vector<float> &ClothMesh::get_mass_ref() const
+{
+    return mass;
+}
+
+/**
+ * @returns A pointer to the rest distance vector.
+ *
+ * @brief Gets the vector containing spring rest distances.
+ * Each mass is mapped to a spring by its index.
+ */
+const std::vector<float> &ClothMesh::get_rest_distance_ref() const
 {
     return rest_distance;
 }
@@ -260,9 +279,15 @@ const std::vector<uint3> &ClothMesh::get_triangles_ref() const
     return triangles;
 }
 
+/**
+ * @returns A pointer to the spring vector.
+ *
+ * @brief Gets the vector containing springs.
+ * Each spring is unique.
+ */
 const std::vector<RealVector<unsigned int, 2>> &ClothMesh::get_unique_springs_ref() const
 {
-    return std::ref(unique_springs);
+    return unique_springs;
 }
 
 /**
