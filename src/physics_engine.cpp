@@ -37,7 +37,7 @@ void PhysicsEngine::update()
 
     std::vector<float3> vertex_positions = cloth->get_vertex_positions();
     float spacing = cloth->get_rest_distance()[0];
-    // spacing = 0.01f;
+
     for (int i = 0; i < substeps; i++)
     {
         SpatialHashStructure structure(vertex_positions, spacing, 20 * vertex_positions.size());

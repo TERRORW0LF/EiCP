@@ -24,7 +24,6 @@ private:
     ClothMesh *cloth;
     float3 gravity;
     MountingType mount;
-    // float3 wind = {0.0f, 0.0f, 0.0f}; // for future use
     std::vector<float3> velocity;
     std::vector<float3> old_position;
     int substeps;
