@@ -7,8 +7,7 @@
 #include "linear_algebra.h"
 #include "camera.h"
 
-
-//#define USE_CONCURRENT_PHYSICS_ENGINE
+// #define USE_CONCURRENT_PHYSICS_ENGINE
 
 class XPBDWindow
 {
@@ -19,14 +18,18 @@ public:
 private:
 	GLFWwindow *window;
 
+	void handle_window_resize(GLFWwindow *window, int width, int height);
+	void handle_buffer_resize(GLFWwindow *window, int width, int height);
+	void handle_window_refresh(GLFWwindow *window);
 	void handle_key_input(GLFWwindow *window, int key, int scancode, int action, int mods);
 	void handle_mouse_input(GLFWwindow *window, double xpos, double ypos);
-	void handle_mouse_button_input(GLFWwindow* window, int button, int action, int mods);
+	void handle_mouse_button_input(GLFWwindow *window, int button, int action, int mods);
 
 	void initialize_members();
 
 	void print_help();
 	void reset_cloth();
+	void render();
 
 public:
 	void update_window();
@@ -62,7 +65,6 @@ private:
 
 	MountingType mounting_type;
 	int mesh_id;
-
 
 	vec3 position;
 	vec3 rotation;

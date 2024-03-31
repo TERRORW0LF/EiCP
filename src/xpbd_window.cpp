@@ -42,6 +42,21 @@ XPBDWindow::XPBDWindow()
 
     // https://subscription.packtpub.com/book/business-and-other/9781803246529/2/ch02lvl1sec06/event-handling-in-glfw
     glfwSetWindowUserPointer(window, this);
+    // Handle window resizing
+    glfwSetWindowSizeCallback(window, [](GLFWwindow *window, int width, int height)
+                              {
+        XPBDWindow *_this = static_cast<XPBDWindow*>(glfwGetWindowUserPointer(window));
+        _this->handle_window_resize(window, width, height); });
+    glfwSetFramebufferSizeCallback(window, [](GLFWwindow *window, int width, int height)
+                                   {
+        XPBDWindow *_this = static_cast<XPBDWindow*>(glfwGetWindowUserPointer(window));
+        _this->handle_buffer_resize(window, width, height); });
+    glfwSetWindowRefreshCallback(window, [](GLFWwindow *window)
+                                 {
+        XPBDWindow *_this = static_cast<XPBDWindow*>(glfwGetWindowUserPointer(window));
+        _this->handle_window_refresh(window); });
+
+    // Handle keyboard inputs
     glfwSetKeyCallback(window, [](GLFWwindow *window, int key, int scancode, int action, int mods)
                        {
         auto _this = static_cast<XPBDWindow*>(glfwGetWindowUserPointer(window));
@@ -73,6 +88,43 @@ XPBDWindow::~XPBDWindow()
 }
 
 /**
+ * @param window The window for this event.
+ * @param width The new width in screen coordinates.
+ * @param height The new height in screen coordinates.
+ *
+ * @brief Updates the projection matrix to the new window size.
+ */
+void XPBDWindow::handle_window_resize(GLFWwindow *window, int width, int height)
+{
+    float aspect = width / (float)height;
+
+    // Update projection matrix with new aspect ratio.
+    projection_matrix = projection(camera->fov, aspect, 0.1f, 200.0f);
+}
+
+/**
+ * @param window The window for this event.
+ * @param width The new width in pixels.
+ * @param height The new height in pixels.
+ *
+ * @brief Updates the OpenGL viewport size to the new window size.
+ */
+void XPBDWindow::handle_buffer_resize(GLFWwindow *window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
+/**
+ * @brief Draw the window while resizing.
+ */
+void XPBDWindow::handle_window_refresh(GLFWwindow *window)
+{
+    update_window();
+    glfwSwapBuffers(window);
+    glFinish();
+}
+
+/**
  * @param window The window for this input.
  * @param xpos The x position of the cursor on the screen.
  * @param ypos The y position of the cursor on the screen.
@@ -98,7 +150,7 @@ void XPBDWindow::handle_mouse_input(GLFWwindow *window, double xpos, double ypos
 
 /**
  * @brief compute user input for mouse button event and translate it into camera movement.
- * 
+ *
  * @param window The glfw window associated with this simulation window.
  * @param button The button associated with the event.
  * @param action The event being triggered.
@@ -384,10 +436,7 @@ void XPBDWindow::initialize_members()
     projection_matrix = projection(camera->fov, aspect, 0.1f, 200.0f);
 }
 
-/**
- * @brief Update the scene with the current changes.
- */
-void XPBDWindow::update_window()
+void XPBDWindow::render()
 {
     // Calculate frame time to allow for fps independent movement.
     double curr_frame = glfwGetTime();
@@ -424,6 +473,14 @@ void XPBDWindow::update_window()
     glUniform3f(8, 1.0f, 1.0f, 1.0f);    // light_color
     glUniform1f(9, 0.5f);                // ambient_strength
     glUniform1f(10, 0.1f);               // specular_strength
+}
+
+/**
+ * @brief Update the scene with the current changes.
+ */
+void XPBDWindow::update_window()
+{
+    render();
 
 #ifdef USE_CONCURRENT_PHYSICS_ENGINE
     if (simulate)
