@@ -29,6 +29,7 @@ private:
     int substeps;
     float delta_time;
     void update_step(std::vector<float3> &vertex_positions, const SpatialHashStructure &structure);
+    bool is_fixed(unsigned int size, unsigned int index) const;
 
     std::chrono::time_point<std::chrono::high_resolution_clock> last_update;
 

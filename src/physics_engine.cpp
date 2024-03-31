@@ -62,15 +62,19 @@ void PhysicsEngine::update_step(std::vector<float3> &vertex_positions, const Spa
 {
     // Determine simulation time for this substep.
     float step_time = delta_time / substeps;
+    unsigned int size = vertex_positions.size();
 
     // Simulation Position Update
     // For each particle in our system, determine our new velocity
     // and update the position accordingly.
-    for (int i = 0; i < vertex_positions.size(); i++)
+    for (int i = 0; i < size; i++)
     {
+        if (is_fixed(size, i))
+            continue;
+
         // reduce velocity by resistance to guarantee a steady state.
         // Also acts as air resistance.
-        velocity[i] *= 0.999f;
+        velocity[i] *= 0.99f;
 
         // add gravity to velocity
         velocity[i] += gravity * step_time;
@@ -117,62 +121,20 @@ void PhysicsEngine::update_step(std::vector<float3> &vertex_positions, const Spa
         delta_x1 *= mass2 / (mass1 + mass2);
         delta_x2 *= mass1 / (mass1 + mass2);
 
-        // Constraint: top left and top right must stay in place
-        // This constraint is a simple position constraint
-        // that keeps the top left and top right vertices in place.
-        // Hence, the cloth will not fall down and we can see the
-        // effect of the other constraints.
-        if (mount == MountingType::CORNER_VERTEX)
+        bool v1_fixed;
+        bool v2_fixed;
+        if (v1_fixed = is_fixed(size, v1))
         {
-            unsigned int last = vertex_positions.size() - 1;
-            std::cout << v1 << " " << v2 << " " << last << std::endl;
-            if (v1 == last)
-            {
-                delta_x1 *= 0;
-                delta_x2 = delta * -1;
-            }
-            else if (v2 == last)
-            {
-                delta_x1 = delta;
-                delta_x2 *= 0;
-            }
+            delta_x1 *= 0;
+            delta_x2 = delta * -1;
         }
-        else if (mount == MountingType::MIDDLE_VERTEX)
+        if (v2_fixed = is_fixed(size, v2))
         {
-            int num_cols = std::sqrt(vertex_positions.size() + 1);
-            unsigned int middle = num_cols / 2 + num_cols * num_cols / 2;
-            if (v1 == middle)
-            {
-                delta_x1 *= 0;
-                delta_x2 = delta * -1;
-            }
-            else if (v2 == middle)
-            {
-                delta_x1 = delta;
-                delta_x2 *= 0;
-            }
+            delta_x1 = delta;
+            delta_x2 *= 0;
         }
-        else if (mount == MountingType::TOP_ROW)
-        {
-            int num_cols = std::sqrt(vertex_positions.size() + 1);
-            int low = vertex_positions.size() - 1 - num_cols;
-
-            if (v1 >= low)
-            {
-                delta_x1 *= 0;
-                delta_x2 = delta * -1;
-            }
-            if (v2 >= low)
-            {
-                delta_x1 = delta;
-                delta_x2 *= 0;
-            }
-            if (v2 >= low && v1 >= low)
-            {
-                delta_x1 = delta;
-                delta_x2 *= 0;
-            }
-        }
+        if (v1_fixed && v2_fixed)
+            delta_x1 *= 0;
 
         vertex_positions[v1] += delta_x1;
         vertex_positions[v2] += delta_x2;
@@ -195,9 +157,9 @@ void PhysicsEngine::update_step(std::vector<float3> &vertex_positions, const Spa
             for (auto j = first; j < last; j++)
             {
                 auto particle_index = structure.get_particles_arr()[j];
-                auto &particle_position = vertex_positions[particle_index];
+                auto &particle_pos = vertex_positions[particle_index];
 
-                auto local_particle_pos = vertex_pos - particle_position;
+                auto local_particle_pos = vertex_pos - particle_pos;
                 auto local_length = local_particle_pos.length();
                 if (local_length > 2 * particle_radius)
                     continue;
@@ -212,8 +174,10 @@ void PhysicsEngine::update_step(std::vector<float3> &vertex_positions, const Spa
 
                 float adjustment = 2 * particle_radius - local_length;
 
-                vertex_pos += (local_particle_pos * (0.5 * adjustment));
-                particle_position -= (local_particle_pos * (0.5 * adjustment));
+                if (!is_fixed(size, i))
+                    vertex_pos += (local_particle_pos * (0.5 * adjustment));
+                if (!is_fixed(size, particle_index))
+                    particle_pos -= (local_particle_pos * (0.5 * adjustment));
             }
         }
     }
@@ -223,6 +187,38 @@ void PhysicsEngine::update_step(std::vector<float3> &vertex_positions, const Spa
     {
         velocity[i] = (vertex_positions[i] - old_position[i]) / step_time;
     }
+}
+
+/**
+ * @param size The number of vertices.
+ * @param index The current vertex index.
+ * @returns If the vertex is fixed.
+ *
+ * @brief Determines if a vertex should be fixed.
+ */
+bool PhysicsEngine::is_fixed(unsigned int size, unsigned int index) const
+{
+    // Constraint: top left and top right must stay in place
+    // This constraint is a simple position constraint
+    // that keeps the top left and top right vertices in place.
+    // Hence, the cloth will not fall down and we can see the
+    // effect of the other constraints.
+    if (mount == MountingType::CORNER_VERTEX)
+    {
+        return index == size - 1;
+    }
+    else if (mount == MountingType::MIDDLE_VERTEX)
+    {
+        int num_cols = std::sqrt(size);
+        return index == num_cols / 2 + num_cols * num_cols / 2;
+    }
+    else if (mount == MountingType::TOP_ROW)
+    {
+        int num_cols = std::sqrt(size);
+        return (index + 1) % num_cols == 0;
+    }
+    else
+        return false;
 }
 
 ConcurrentPhysicsEngine::ConcurrentPhysicsEngine(ClothMesh *cloth, float3 gravity, MountingType m)
