@@ -119,7 +119,7 @@ void XPBDWindow::handle_buffer_resize(GLFWwindow *window, int width, int height)
  */
 void XPBDWindow::handle_window_refresh(GLFWwindow *window)
 {
-    update_window();
+    render();
     glfwSwapBuffers(window);
     glFinish();
 }

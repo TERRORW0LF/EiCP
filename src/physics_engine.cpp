@@ -8,6 +8,7 @@
  *
  * @param cloth Pointer to cloth which is to be simulated
  * @param _gravity Gravitational force to be simulated
+ * @param _mount Determines which points of the cloth are fixed in place
  */
 PhysicsEngine::PhysicsEngine(ClothMesh *cloth, float3 _gravity, MountingType _mount) : cloth(cloth)
 {
@@ -26,12 +27,15 @@ PhysicsEngine::PhysicsEngine(ClothMesh *cloth, float3 _gravity, MountingType _mo
 void PhysicsEngine::update()
 {
     auto current_time = std::chrono::high_resolution_clock::now();
+
+    // Do not simulate first active simulation frame, since the difference would be massive.
     if (std::chrono::duration_cast<std::chrono::microseconds>(last_update.time_since_epoch()).count() == 0)
     {
         last_update = current_time;
         return;
     }
 
+    // Determine the time step since last update.
     delta_time = std::chrono::duration_cast<std::chrono::microseconds>(current_time - last_update).count() / 1000000.0f;
     last_update = current_time;
 
@@ -40,6 +44,8 @@ void PhysicsEngine::update()
 
     for (int i = 0; i < substeps; i++)
     {
+        // Create hash map for efficient self collision checking. Each hash map cell has
+        // one point in the default cloth state.
         SpatialHashStructure structure(vertex_positions, spacing, 20 * vertex_positions.size());
         update_step(vertex_positions, structure);
     }
@@ -49,41 +55,46 @@ void PhysicsEngine::update()
 /**
  * @brief Internal logic to update the physics engine
  * In this function, the physics engine is updated by a single step. This function is called by the update function.
- * Here, the physics engine updates the position of the cloth vertices based on the velocity and gravity. Afterwards, the physics engine applies constraints to the cloth vertices to simulate the cloth's behavior.
+ * Here, the physics engine updates the position of the cloth vertices based on the velocity and gravity.
+ * Afterwards, the physics engine applies constraints to the cloth vertices to simulate the cloth's behavior.
  */
 void PhysicsEngine::update_step(std::vector<float3> &vertex_positions, const SpatialHashStructure &structure)
 {
-    float time_counter = delta_time / substeps;
+    // Determine simulation time for this substep.
+    float step_time = delta_time / substeps;
 
-    for (int vertex_counter = 0; vertex_counter < vertex_positions.size(); vertex_counter++)
+    // Simulation Position Update
+    // For each particle in our system, determine our new velocity
+    // and update the position accordingly.
+    for (int i = 0; i < vertex_positions.size(); i++)
     {
-
-        // reduce velocity by resistance
-        velocity[vertex_counter] *= 0.999f;
+        // reduce velocity by resistance to guarantee a steady state.
+        // Also acts as air resistance.
+        velocity[i] *= 0.999f;
 
         // add gravity to velocity
-        velocity[vertex_counter] += gravity * time_counter;
+        velocity[i] += gravity * step_time;
 
         // save old position
-        old_position[vertex_counter] = vertex_positions[vertex_counter];
+        old_position[i] = vertex_positions[i];
 
         // update vertex position
-        vertex_positions[vertex_counter] += velocity[vertex_counter] * time_counter;
+        vertex_positions[i] += velocity[i] * step_time;
     }
 
     // Simulation Constraints
 
     // Constraint: Distance constraint
-    // The distance constraint is a simple spring force between each pair of connected vertices. It allows the cloth to stretch and compress, but not to bend.
-
-    std::vector<float> rest_distance = cloth->get_rest_distance(); // 0.15f;//between two particles
+    // The distance constraint is a simple spring force between each pair of connected vertices.
+    // It allows the cloth to stretch and compress, but not to bend.
+    std::vector<float> rest_distance = cloth->get_rest_distance();
     float mass = 0.1f;
     float weight = 1 / mass;
 
-    const auto &unique_springs = cloth->get_unique_springs_ref();
-    for (int i = 0; i < unique_springs.size(); i++)
+    const auto &springs = cloth->get_unique_springs_ref();
+    for (int i = 0; i < springs.size(); i++)
     {
-        const auto edge = unique_springs[i];
+        const auto edge = springs[i];
         unsigned int v1 = edge.data[0];
         unsigned int v2 = edge.data[1];
 
@@ -174,9 +185,9 @@ void PhysicsEngine::update_step(std::vector<float3> &vertex_positions, const Spa
     }
 
     // Update the velocity of each vertex by comparing the new position with the old position.
-    for (int vertex_counter = 0; vertex_counter < vertex_positions.size(); vertex_counter++)
+    for (int i = 0; i < vertex_positions.size(); i++)
     {
-        velocity[vertex_counter] = (vertex_positions[vertex_counter] - old_position[vertex_counter]) / time_counter;
+        velocity[i] = (vertex_positions[i] - old_position[i]) / step_time;
     }
 }
 
