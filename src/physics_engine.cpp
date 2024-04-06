@@ -37,6 +37,7 @@ void PhysicsEngine::update()
 
     // Determine the time step since last update.
     delta_time = std::chrono::duration_cast<std::chrono::microseconds>(current_time - last_update).count() / 1000000.0f;
+    delta_time = 0.2f;
     last_update = current_time;
 
     std::vector<float3> vertex_positions = cloth->get_vertex_positions();
@@ -123,18 +124,20 @@ void PhysicsEngine::update_step(std::vector<float3> &vertex_positions, const Spa
 
         bool v1_fixed;
         bool v2_fixed;
-        if (v1_fixed = is_fixed(size, v1))
+        if ((v1_fixed = is_fixed(size, v1)))
         {
             delta_x1 *= 0;
             delta_x2 = delta * -1;
         }
-        if (v2_fixed = is_fixed(size, v2))
+        if ((v2_fixed = is_fixed(size, v2)))
         {
             delta_x1 = delta;
             delta_x2 *= 0;
         }
         if (v1_fixed && v2_fixed)
+        {
             delta_x1 *= 0;
+        }
 
         vertex_positions[v1] += delta_x1;
         vertex_positions[v2] += delta_x2;
@@ -221,6 +224,7 @@ bool PhysicsEngine::is_fixed(unsigned int size, unsigned int index) const
         return false;
 }
 
+#ifndef __clang__
 ConcurrentPhysicsEngine::ConcurrentPhysicsEngine(ClothMesh *cloth, float3 gravity, MountingType m)
     : internal_engine(cloth, gravity, m)
 {
@@ -251,3 +255,4 @@ void ConcurrentPhysicsEngine::wait()
 {
     is_physics_computed.wait(false); // blocks until is_physics_computed turns to true
 }
+#endif

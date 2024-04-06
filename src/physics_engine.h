@@ -36,6 +36,7 @@ private:
 public:
 };
 
+#ifndef __clang__
 class ConcurrentPhysicsEngine
 {
 public:
@@ -49,3 +50,4 @@ private:
 
     std::atomic<bool> is_physics_computed;
 };
+#endif

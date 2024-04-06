@@ -21,7 +21,7 @@ constexpr void trim_left(std::string_view &text) noexcept
 
 // File and Reader classes are OS dependant.
 // We currently only support Windows.
-#ifdef _WIN32
+#if defined(__WIN32) && !defined(__clang__)
 struct Chunk
 {
     std::vector<float> vertices{};
@@ -356,7 +356,7 @@ void consume_line(std::string_view line, Chunk *chunk)
         for (int i = 0; i < 3 && !line.empty(); i++)
         {
             trim_left(line);
-            float value = float();
+            float value = 0.0f;
             auto [ptr, _] = std::from_chars(line.data(), line.data() + line.size(), value);
             chunk->vertices.push_back(value);
             size_t length = static_cast<size_t>(ptr - line.data());
