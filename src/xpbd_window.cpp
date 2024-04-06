@@ -96,6 +96,8 @@ XPBDWindow::~XPBDWindow()
  */
 void XPBDWindow::handle_window_resize(GLFWwindow *window, int width, int height)
 {
+    (void)window;
+
     float aspect = width / (float)height;
 
     // Update projection matrix with new aspect ratio.
@@ -111,6 +113,8 @@ void XPBDWindow::handle_window_resize(GLFWwindow *window, int width, int height)
  */
 void XPBDWindow::handle_buffer_resize(GLFWwindow *window, int width, int height)
 {
+    (void)window;
+
     glViewport(0, 0, width, height);
 }
 
@@ -133,6 +137,8 @@ void XPBDWindow::handle_window_refresh(GLFWwindow *window)
  */
 void XPBDWindow::handle_mouse_input(GLFWwindow *window, double xpos, double ypos)
 {
+    (void)window;
+
     if (!mouse_input_enabled)
         return;
     // Calculate offsets. In glfw (0,0) is the upper left corner
@@ -158,6 +164,8 @@ void XPBDWindow::handle_mouse_input(GLFWwindow *window, double xpos, double ypos
  */
 void XPBDWindow::handle_mouse_button_input(GLFWwindow *window, int button, int action, int mods)
 {
+    (void)mods;
+
     switch (button)
     {
     case GLFW_MOUSE_BUTTON_LEFT:
@@ -184,6 +192,10 @@ void XPBDWindow::handle_mouse_button_input(GLFWwindow *window, int button, int a
  */
 void XPBDWindow::handle_key_input(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
+    (void)window;
+    (void)scancode;
+    (void)mods;
+
     switch (key)
     {
         // Assign movement value for all 3 directions.
@@ -369,10 +381,10 @@ void XPBDWindow::reset_cloth()
     rotation = {0.0f, 0.0f, 0.0f};
     model_matrix = model(position, rotation, 1.0f);
 
-    float3 gravity;
-    gravity.data[0] = 0.f;
-    gravity.data[1] = -9.81f;
-    gravity.data[2] = 0.f;
+    vec3 gravity;
+    gravity.entries[0] = 0.f;
+    gravity.entries[1] = -9.81f;
+    gravity.entries[2] = 0.f;
 
     MountingType m = static_cast<MountingType>(mounting_type);
 

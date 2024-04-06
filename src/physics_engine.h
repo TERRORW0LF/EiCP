@@ -17,18 +17,18 @@ enum MountingType
 class PhysicsEngine
 {
 public:
-    PhysicsEngine(ClothMesh *cloth, float3 gravity, MountingType mount);
+    PhysicsEngine(ClothMesh *cloth, vec3 gravity, MountingType mount);
     void update();
 
 private:
     ClothMesh *cloth;
-    float3 gravity;
+    vec3 gravity;
     MountingType mount;
-    std::vector<float3> velocity;
-    std::vector<float3> old_position;
+    std::vector<vec3> velocity;
+    std::vector<vec3> old_position;
     int substeps;
     float delta_time;
-    void update_step(std::vector<float3> &vertex_positions, const SpatialHashStructure &structure);
+    void update_step(std::vector<vec3> &vertex_positions, const SpatialHashStructure &structure);
     bool is_fixed(unsigned int size, unsigned int index) const;
 
     std::chrono::time_point<std::chrono::high_resolution_clock> last_update;
@@ -40,7 +40,7 @@ public:
 class ConcurrentPhysicsEngine
 {
 public:
-    ConcurrentPhysicsEngine(ClothMesh *cloth, float3 gravity, MountingType m);
+    ConcurrentPhysicsEngine(ClothMesh *cloth, vec3 gravity, MountingType m);
     void update();
     void wait();
 

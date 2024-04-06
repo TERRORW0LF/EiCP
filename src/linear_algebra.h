@@ -21,7 +21,6 @@ struct vec3
 {
     float entries[3];
 
-    vec3 &operator=(const vec3 &v);
     bool operator==(const vec3 &v) const;
     vec3 operator-() const;
     vec3 operator+(const vec3 &v) const;
@@ -33,9 +32,12 @@ struct vec3
     friend vec3 &operator*=(const float s, vec3 &v);
     friend vec3 operator*(const vec3 &v, const float s);
     friend vec3 &operator*=(vec3 &v, const float s);
+    friend vec3 operator/(const float s, const vec3 &v);
+    friend vec3 &operator/=(const float s, vec3 &v);
+    friend vec3 operator/(const vec3 &v, const float s);
+    friend vec3 &operator/=(vec3 &v, const float s);
     // Dot product
-    vec3 operator*(const vec3 &v) const;
-    vec3 &operator*=(const vec3 &v);
+    float operator*(const vec3 &v) const;
     // Cross product
     vec3 operator%(const vec3 &v) const;
     vec3 &operator%=(const vec3 &v);
@@ -48,6 +50,5 @@ mat4 model(vec3 translation, vec3 rotation, float scale);
 mat4 view(vec3 pos, vec3 forward, vec3 global_up);
 mat4 projection(float fov, float aspect_ratio, float near, float far);
 
-float dot(vec3 u, vec3 v);
+float length(vec3 v);
 vec3 normalize(vec3 v);
-vec3 cross(vec3 u, vec3 v);

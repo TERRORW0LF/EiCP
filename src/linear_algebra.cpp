@@ -2,13 +2,6 @@
 
 // Modified code of this stackoverflow answer:
 // https://stackoverflow.com/a/14047520
-vec3 &vec3::operator=(const vec3 &v)
-{
-    entries[0] = v.entries[0];
-    entries[1] = v.entries[1];
-    entries[2] = v.entries[2];
-    return *this;
-}
 bool vec3::operator==(const vec3 &v) const
 {
     return entries[0] == v.entries[0] && entries[1] == v.entries[1] && entries[2] == v.entries[2];
@@ -52,20 +45,32 @@ vec3 &operator*=(vec3 &v, const float s)
 {
     return s *= v;
 }
-vec3 vec3::operator*(const vec3 &v) const
+vec3 operator/(const float s, const vec3 &v)
 {
-    return {entries[0] * v.entries[0], entries[1] * v.entries[1], entries[2] * v.entries[2]};
+    return {s / v.entries[0], s / v.entries[1], s / v.entries[2]};
 }
-vec3 &vec3::operator*=(const vec3 &v)
+vec3 &operator/=(const float s, vec3 &v)
 {
-    *this = *this * v;
-    return *this;
+    v = s / v;
+    return v;
+}
+vec3 operator/(const vec3 &v, const float s)
+{
+    return s / v;
+}
+vec3 &operator/=(vec3 &v, const float s)
+{
+    return s /= v;
+}
+float vec3::operator*(const vec3 &v) const
+{
+    return entries[0] * v.entries[0] + entries[1] * v.entries[1] + entries[2] * v.entries[2];
 }
 vec3 vec3::operator%(const vec3 &v) const
 {
-    return {entries[1] * v.entries[2] - entries[2] * v.entries[1],
-            entries[2] * v.entries[0] - entries[0] * v.entries[2],
-            entries[0] * v.entries[1] - entries[1] * v.entries[0]};
+    return {(entries[1] * v.entries[2]) - (entries[2] * v.entries[1]),
+            (entries[2] * v.entries[0]) - (entries[0] * v.entries[2]),
+            (entries[0] * v.entries[1]) - (entries[1] * v.entries[0])};
 }
 vec3 &vec3::operator%=(const vec3 &v)
 {
@@ -268,9 +273,9 @@ mat4 view(vec3 pos, vec3 forward, vec3 global_up)
     matrix.entries[10] = -forward.entries[2];
     matrix.entries[11] = 0.0f;
 
-    matrix.entries[12] = -dot(right, pos);
-    matrix.entries[13] = -dot(up, pos);
-    matrix.entries[14] = dot(forward, pos);
+    matrix.entries[12] = -(right * pos);
+    matrix.entries[13] = -(up * pos);
+    matrix.entries[14] = forward * pos;
     matrix.entries[15] = 1.0f;
 
     return matrix;
@@ -303,14 +308,14 @@ mat4 projection(float fov, float aspect_ratio, float near, float far)
 }
 
 /**
- * @param u The first input vector.
- * @param v The second input vector.
- * @returns The dot prodcut of the input vectors.
- * @brief Calculates the dot product.
+ * @param v The input vector
+ * @returns The length of the vector
+ *
+ * @brief Calculates the length of a vector.
  */
-float dot(vec3 u, vec3 v)
+float length(vec3 v)
 {
-    return u.entries[0] * v.entries[0] + u.entries[1] * v.entries[1] + u.entries[2] * v.entries[2];
+    return std::sqrt(v * v);
 }
 
 /**
@@ -322,38 +327,17 @@ vec3 normalize(vec3 v)
 {
     vec3 w;
 
-    float length = sqrtf(dot(v, v));
+    float length_v = length(v);
 
     // If v = 0 then return v to avoid returning nan.
-    if (length == 0)
+    if (length_v == 0.0f)
     {
         return v;
     }
 
-    w.entries[0] = v.entries[0] / length;
-    w.entries[1] = v.entries[1] / length;
-    w.entries[2] = v.entries[2] / length;
-
-    return w;
-}
-
-/**
- * Calculates the cross product of two vectors.
- * The cross product is the normal vector to the plane
- * created by the two input vectors.
- *
- * @param u The first input vector.
- * @param v The second input vector.
- * @returns The cross product of the input vectors.
- * @brief Calculates the cross product.
- */
-vec3 cross(vec3 u, vec3 v)
-{
-    vec3 w;
-
-    w.entries[0] = u.entries[1] * v.entries[2] - u.entries[2] * v.entries[1];
-    w.entries[1] = -(u.entries[0] * v.entries[2] - u.entries[2] * v.entries[0]);
-    w.entries[2] = u.entries[0] * v.entries[1] - u.entries[1] * v.entries[1];
+    w.entries[0] = v.entries[0] / length_v;
+    w.entries[1] = v.entries[1] / length_v;
+    w.entries[2] = v.entries[2] / length_v;
 
     return w;
 }

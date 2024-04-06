@@ -30,12 +30,12 @@ ClothMesh::ClothMesh(const std::string &cloth_path, vec3 color)
     assert(vertices.size() % 3 == 0);
     vertex_positions.reserve(vertices.size() / 3);
     mass.reserve(vertices.size() / 3);
-    for (int i = 0; i < vertices.size(); i += 3)
+    for (size_t i = 0; i < vertices.size(); i += 3)
     {
-        float3 v;
-        v.data[0] = vertices[i];
-        v.data[1] = vertices[i + 1];
-        v.data[2] = vertices[i + 2];
+        vec3 v;
+        v.entries[0] = vertices[i];
+        v.entries[1] = vertices[i + 1];
+        v.entries[2] = vertices[i + 2];
         vertex_positions.push_back(v);
         mass.push_back(0.1f);
     }
@@ -43,7 +43,7 @@ ClothMesh::ClothMesh(const std::string &cloth_path, vec3 color)
 
     assert(faces.size() % 3 == 0);
     triangles.reserve(faces.size() % 3);
-    for (int i = 0; i < faces.size(); i += 3)
+    for (size_t i = 0; i < faces.size(); i += 3)
     {
         uint3 t;
         t.data[0] = faces[i];
@@ -51,7 +51,7 @@ ClothMesh::ClothMesh(const std::string &cloth_path, vec3 color)
         t.data[2] = faces[i + 2];
         triangles.push_back(t);
     }
-    std::vector<float3> temp_normals;
+    std::vector<vec3> temp_normals;
     compute_normals(temp_normals);
 
     // construct list of edges
@@ -80,7 +80,7 @@ ClothMesh::ClothMesh(const std::string &cloth_path, vec3 color)
         }
     }
 
-    int num_vertices_per_row = std::sqrt(vertex_positions.size() + 1);
+    int num_vertices_per_row = std::sqrt(vertex_positions.size());
     for (const auto &a : temp_unique_edges)
     {
 
@@ -89,28 +89,18 @@ ClothMesh::ClothMesh(const std::string &cloth_path, vec3 color)
 
         auto index_dist = std::abs((int)(v1 - v2));
 
-        if (index_dist == 1)
+        if (index_dist == 1 || index_dist == num_vertices_per_row)
         {
             unique_springs.push_back(a);
-            float3 x1 = vertex_positions[v1];
-            float3 x2 = vertex_positions[v2];
-            float3 delta_x1 = x2 - x1;
-            float length = delta_x1.length();
-            rest_distance.push_back(length);
-        }
-        else if (index_dist == num_vertices_per_row - 1)
-        {
-            continue;
+            vec3 x1 = vertex_positions[v1];
+            vec3 x2 = vertex_positions[v2];
+            vec3 delta_x1 = x2 - x1;
+            float length_v = length(delta_x1);
+            rest_distance.push_back(length_v);
         }
         else
         {
-            assert(index_dist == num_vertices_per_row);
-            unique_springs.push_back(a);
-            float3 x1 = vertex_positions[v1];
-            float3 x2 = vertex_positions[v2];
-            float3 delta_x1 = x2 - x1;
-            float length = delta_x1.length();
-            rest_distance.push_back(length);
+            continue;
         }
     }
 
@@ -124,7 +114,7 @@ ClothMesh::ClothMesh(const std::string &cloth_path, vec3 color)
 
     // Vertices
     glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
-    glBufferData(GL_ARRAY_BUFFER, vertex_positions.size() * sizeof(float3), vertex_positions.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertex_positions.size() * sizeof(vec3), vertex_positions.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
 
@@ -136,7 +126,7 @@ ClothMesh::ClothMesh(const std::string &cloth_path, vec3 color)
 
     // Vertice normals
     glBindBuffer(GL_ARRAY_BUFFER, VBOs[2]);
-    glBufferData(GL_ARRAY_BUFFER, temp_normals.size() * sizeof(float3), temp_normals.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, temp_normals.size() * sizeof(vec3), temp_normals.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(2);
 
@@ -155,7 +145,7 @@ void ClothMesh::draw()
     if (vertex_positions_invalid)
     {
         glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
-        glBufferData(GL_ARRAY_BUFFER, vertex_positions.size() * sizeof(float3), vertex_positions.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertex_positions.size() * sizeof(vec3), vertex_positions.data(), GL_STATIC_DRAW);
 
         compute_and_store_normals();
 
@@ -183,11 +173,11 @@ ClothMesh::~ClothMesh()
  */
 void ClothMesh::compute_and_store_normals()
 {
-    std::vector<float3> temp_normals;
+    std::vector<vec3> temp_normals;
     compute_normals(temp_normals);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBOs[2]);
-    glBufferData(GL_ARRAY_BUFFER, temp_normals.size() * sizeof(float3), temp_normals.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, temp_normals.size() * sizeof(vec3), temp_normals.data(), GL_STATIC_DRAW);
 }
 
 /**
@@ -195,35 +185,30 @@ void ClothMesh::compute_and_store_normals()
  *
  * @param temp_normals [float3] vector to store the normals
  */
-void ClothMesh::compute_normals(std::vector<float3> &temp_normals)
+void ClothMesh::compute_normals(std::vector<vec3> &temp_normals)
 {
     temp_normals.resize(vertex_positions.size(), {0.f, 0.f, 0.f});
     for (const uint3 &t : triangles)
     {
-        const float3 &v1 = vertex_positions[t.data[0]];
-        const float3 &v2 = vertex_positions[t.data[1]];
-        const float3 &v3 = vertex_positions[t.data[2]];
+        const vec3 &v1 = vertex_positions[t.data[0]];
+        const vec3 &v2 = vertex_positions[t.data[1]];
+        const vec3 &v3 = vertex_positions[t.data[2]];
 
         // compute triangle normal
-        float3 e1 = v2 - v1;
-        float3 e2 = v3 - v1;
+        vec3 e1 = v2 - v1;
+        vec3 e2 = v3 - v1;
 
         // compute cross product
-        float3 normal = e1.cross_product(e2);
-
-        // compute magnitude
-        float magnitude = normal.length();
-        normal /= magnitude;
+        vec3 normal = normalize(e1 % e2);
 
         temp_normals[t.data[0]] += normal;
         temp_normals[t.data[1]] += normal;
         temp_normals[t.data[2]] += normal;
     }
 
-    for (float3 &n : temp_normals)
+    for (vec3 &n : temp_normals)
     {
-        float l = n.length();
-        n /= l;
+        n = normalize(n);
     }
 }
 
@@ -254,7 +239,7 @@ const std::vector<float> &ClothMesh::get_rest_distance_ref() const
  *
  * @return std::vector<float3>
  */
-std::vector<float3> ClothMesh::get_vertex_positions() const
+std::vector<vec3> ClothMesh::get_vertex_positions() const
 {
     return vertex_positions;
 }
@@ -295,7 +280,7 @@ const std::vector<RealVector<unsigned int, 2>> &ClothMesh::get_unique_springs_re
  *
  * @param new_vertex_positions
  */
-void ClothMesh::set_vertex_positions(const std::vector<float3> &new_vertex_positions)
+void ClothMesh::set_vertex_positions(const std::vector<vec3> &new_vertex_positions)
 {
     if (new_vertex_positions.size() != vertex_positions.size())
     {

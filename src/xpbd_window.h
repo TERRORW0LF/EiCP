@@ -33,7 +33,6 @@ private:
 
 public:
 	void update_window();
-	void update_camera();
 	// blocking!
 	void enter_update_loop();
 

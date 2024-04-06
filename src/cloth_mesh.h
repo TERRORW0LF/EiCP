@@ -22,11 +22,11 @@ private:
     std::vector<unsigned int> VBOs;
 
     mutable bool vertex_positions_invalid = true;
-    std::vector<float3> vertex_positions;
+    std::vector<vec3> vertex_positions;
     std::vector<uint3> triangles;
 
     void compute_and_store_normals();
-    void compute_normals(std::vector<float3> &out);
+    void compute_normals(std::vector<vec3> &out);
 
     // Subset of unique edges, containing only straight edges
     // meaning that diagonal edges have been removed
@@ -43,9 +43,9 @@ public:
     const std::vector<float> &get_rest_distance_ref() const;
     const std::vector<float> &get_mass_ref() const;
 
-    std::vector<float3> get_vertex_positions() const;
+    std::vector<vec3> get_vertex_positions() const;
     // this will invalidate the vertex positions array
-    void set_vertex_positions(const std::vector<float3> &new_vertex_positions);
+    void set_vertex_positions(const std::vector<vec3> &new_vertex_positions);
 
     // topology remains unchanged, so we dont need a setter!
     std::vector<uint3> get_triangles() const;

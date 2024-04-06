@@ -10,12 +10,12 @@
  * @param _gravity Gravitational force to be simulated
  * @param _mount Determines which points of the cloth are fixed in place
  */
-PhysicsEngine::PhysicsEngine(ClothMesh *cloth, float3 _gravity, MountingType _mount) : cloth(cloth)
+PhysicsEngine::PhysicsEngine(ClothMesh *cloth, vec3 _gravity, MountingType _mount) : cloth(cloth)
 {
     gravity = _gravity;
     mount = _mount;
-    velocity = std::vector<float3>(cloth->get_vertex_positions().size(), {0.f, 0.f, 0.f});
-    old_position = std::vector<float3>(cloth->get_vertex_positions().size(), {0.0f, 0.0f, 0.0f});
+    velocity = std::vector<vec3>(cloth->get_vertex_positions().size(), {0.f, 0.f, 0.f});
+    old_position = std::vector<vec3>(cloth->get_vertex_positions().size(), {0.0f, 0.0f, 0.0f});
     substeps = 20;
     delta_time = 1.0f;
 }
@@ -39,7 +39,7 @@ void PhysicsEngine::update()
     delta_time = std::chrono::duration_cast<std::chrono::microseconds>(current_time - last_update).count() / 1000000.0f;
     last_update = current_time;
 
-    std::vector<float3> vertex_positions = cloth->get_vertex_positions();
+    std::vector<vec3> vertex_positions = cloth->get_vertex_positions();
     float spacing = cloth->get_rest_distance_ref()[0];
 
     for (int i = 0; i < substeps; i++)
@@ -58,16 +58,16 @@ void PhysicsEngine::update()
  * Here, the physics engine updates the position of the cloth vertices based on the velocity and gravity.
  * Afterwards, the physics engine applies constraints to the cloth vertices to simulate the cloth's behavior.
  */
-void PhysicsEngine::update_step(std::vector<float3> &vertex_positions, const SpatialHashStructure &structure)
+void PhysicsEngine::update_step(std::vector<vec3> &vertex_positions, const SpatialHashStructure &structure)
 {
     // Determine simulation time for this substep.
     float step_time = delta_time / substeps;
-    unsigned int size = vertex_positions.size();
+    size_t size = vertex_positions.size();
 
     // Simulation Position Update
     // For each particle in our system, determine our new velocity
     // and update the position accordingly.
-    for (int i = 0; i < size; i++)
+    for (size_t i = 0; i < size; i++)
     {
         if (is_fixed(size, i))
             continue;
@@ -91,31 +91,31 @@ void PhysicsEngine::update_step(std::vector<float3> &vertex_positions, const Spa
     // Constraint: Distance constraint
     // The distance constraint is a simple spring force between each pair of connected vertices.
     // It allows the cloth to stretch and compress, but not to bend.
-    std::vector<float> rest_distance = cloth->get_rest_distance_ref();
-    std::vector<float> mass = cloth->get_mass_ref();
+    const std::vector<float> &rest_distance = cloth->get_rest_distance_ref();
+    const std::vector<float> &mass = cloth->get_mass_ref();
 
     const auto &springs = cloth->get_unique_springs_ref();
-    for (int i = 0; i < springs.size(); i++)
+    for (size_t i = 0; i < springs.size(); i++)
     {
         // Get vertices of the edge.
         const auto edge = springs[i];
         unsigned int v1 = edge.data[0];
         unsigned int v2 = edge.data[1];
 
-        float3 x1 = vertex_positions[v1];
-        float3 x2 = vertex_positions[v2];
+        vec3 x1 = vertex_positions[v1];
+        vec3 x2 = vertex_positions[v2];
         float mass1 = mass[v1];
         float mass2 = mass[v2];
 
         // Determine direction vector of spring and
         // set its length to the offset from the rest distance.
-        float3 delta = x2 - x1;
-        float length = delta.length();
-        delta /= length;
-        delta *= (length - rest_distance[i]);
+        vec3 delta = x2 - x1;
+        float length_v = length(delta);
+        delta /= length_v;
+        delta *= (length_v - rest_distance[i]);
 
-        float3 delta_x1 = delta;
-        float3 delta_x2 = delta * -1;
+        vec3 delta_x1 = delta;
+        vec3 delta_x2 = delta * -1.0f;
 
         // Distribute the offset to both vertices based on their weight.
         delta_x1 *= mass2 / (mass1 + mass2);
@@ -125,67 +125,67 @@ void PhysicsEngine::update_step(std::vector<float3> &vertex_positions, const Spa
         bool v2_fixed;
         if ((v1_fixed = is_fixed(size, v1)))
         {
-            delta_x1 *= 0;
-            delta_x2 = delta * -1;
+            delta_x1 *= 0.0f;
+            delta_x2 = delta * -1.0f;
         }
         if ((v2_fixed = is_fixed(size, v2)))
         {
             delta_x1 = delta;
-            delta_x2 *= 0;
+            delta_x2 *= 0.0f;
         }
         if (v1_fixed && v2_fixed)
         {
-            delta_x1 *= 0;
+            delta_x1 *= 0.0f;
         }
 
         vertex_positions[v1] += delta_x1;
         vertex_positions[v2] += delta_x2;
     }
+    /*
+        // Constraint: Self collission
+        // iterate over vertices
+        // iterate over neighboring cells
+        // iterate over vertices in that cell
+        // if they are too close to each other -> push them apart
+        float particle_radius = rest_distance[0] / 3.f;
 
-    // Constraint: Self collission
-    // iterate over vertices
-    // iterate over neighboring cells
-    // iterate over vertices in that cell
-    // if they are too close to each other -> push them apart
-    float particle_radius = rest_distance[0] / 3.f;
-
-    for (int i = 0; i < vertex_positions.size(); i++)
-    {
-        auto &vertex_pos = vertex_positions[i];
-        auto neighbor_cells = structure.compute_neighbor_cells(vertex_pos);
-        for (int neighbor_cell : neighbor_cells)
+        for (size_t i = 0; i < vertex_positions.size(); i++)
         {
-            auto [first, last] = structure.get_particle_range_in_cell(neighbor_cell);
-            for (auto j = first; j < last; j++)
+            auto &vertex_pos = vertex_positions[i];
+            auto neighbor_cells = structure.compute_neighbor_cells(vertex_pos);
+            for (int neighbor_cell : neighbor_cells)
             {
-                auto particle_index = structure.get_particles_arr()[j];
-                auto &particle_pos = vertex_positions[particle_index];
+                auto [first, last] = structure.get_particle_range_in_cell(neighbor_cell);
+                for (auto j = first; j < last; j++)
+                {
+                    auto particle_index = structure.get_particles_arr()[j];
+                    auto &particle_pos = vertex_positions[particle_index];
 
-                auto local_particle_pos = vertex_pos - particle_pos;
-                auto local_length = local_particle_pos.length();
-                if (local_length > 2 * particle_radius)
-                    continue;
-                if (i == particle_index)
-                    continue;
+                    auto local_particle_pos = vertex_pos - particle_pos;
+                    auto local_length = length(local_particle_pos);
+                    if (local_length > 2 * particle_radius)
+                        continue;
+                    if (i == particle_index)
+                        continue;
 
-                // particles are too close!
-                // do some computation to push them apart!
+                    // particles are too close!
+                    // do some computation to push them apart!
 
-                // normalize
-                local_particle_pos /= local_length;
+                    // normalize
+                    local_particle_pos /= local_length;
 
-                float adjustment = 2 * particle_radius - local_length;
+                    float adjustment = 2.0f * particle_radius - local_length;
 
-                if (!is_fixed(size, i))
-                    vertex_pos += (local_particle_pos * (0.5 * adjustment));
-                if (!is_fixed(size, particle_index))
-                    particle_pos -= (local_particle_pos * (0.5 * adjustment));
+                    if (!is_fixed(size, i))
+                        vertex_pos += (local_particle_pos * (0.5f * adjustment));
+                    if (!is_fixed(size, particle_index))
+                        particle_pos -= (local_particle_pos * (0.5f * adjustment));
+                }
             }
         }
-    }
-
+    */
     // Update the velocity of each vertex by comparing the new position with the old position.
-    for (int i = 0; i < vertex_positions.size(); i++)
+    for (size_t i = 0; i < vertex_positions.size(); i++)
     {
         velocity[i] = (vertex_positions[i] - old_position[i]) / step_time;
     }
@@ -211,7 +211,7 @@ bool PhysicsEngine::is_fixed(unsigned int size, unsigned int index) const
     }
     else if (mount == MountingType::MIDDLE_VERTEX)
     {
-        int num_cols = std::sqrt(size);
+        unsigned int num_cols = std::sqrt(size);
         return index == num_cols / 2 + num_cols * num_cols / 2;
     }
     else if (mount == MountingType::TOP_ROW)
@@ -224,7 +224,7 @@ bool PhysicsEngine::is_fixed(unsigned int size, unsigned int index) const
 }
 
 #ifndef __clang__
-ConcurrentPhysicsEngine::ConcurrentPhysicsEngine(ClothMesh *cloth, float3 gravity, MountingType m)
+ConcurrentPhysicsEngine::ConcurrentPhysicsEngine(ClothMesh *cloth, vec3 gravity, MountingType m)
     : internal_engine(cloth, gravity, m)
 {
     is_physics_computed.store(true);
