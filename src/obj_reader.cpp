@@ -193,7 +193,7 @@ std::pair<std::vector<float>, std::vector<unsigned int>> read_obj(const std::str
         threads.reserve(num_tasks);
 
         // Create threads with corresponding blocks.
-        for (int i = 0; i < tasks.size(); i++)
+        for (size_t i = 0; i < tasks.size(); i++)
         {
             bool last = i == tasks.size() - 1;
             int begin = tasks[i];

@@ -141,49 +141,49 @@ void PhysicsEngine::update_step(std::vector<vec3> &vertex_positions, const Spati
         vertex_positions[v1] += delta_x1;
         vertex_positions[v2] += delta_x2;
     }
-    /*
-        // Constraint: Self collission
-        // iterate over vertices
-        // iterate over neighboring cells
-        // iterate over vertices in that cell
-        // if they are too close to each other -> push them apart
-        float particle_radius = rest_distance[0] / 3.f;
 
-        for (size_t i = 0; i < vertex_positions.size(); i++)
+    // Constraint: Self collission
+    // iterate over vertices
+    // iterate over neighboring cells
+    // iterate over vertices in that cell
+    // if they are too close to each other -> push them apart
+    float particle_radius = rest_distance[0] / 3.f;
+
+    for (size_t i = 0; i < vertex_positions.size(); i++)
+    {
+        auto &vertex_pos = vertex_positions[i];
+        auto neighbor_cells = structure.compute_neighbor_cells(vertex_pos);
+        for (int neighbor_cell : neighbor_cells)
         {
-            auto &vertex_pos = vertex_positions[i];
-            auto neighbor_cells = structure.compute_neighbor_cells(vertex_pos);
-            for (int neighbor_cell : neighbor_cells)
+            auto [first, last] = structure.get_particle_range_in_cell(neighbor_cell);
+            for (auto j = first; j < last; j++)
             {
-                auto [first, last] = structure.get_particle_range_in_cell(neighbor_cell);
-                for (auto j = first; j < last; j++)
-                {
-                    auto particle_index = structure.get_particles_arr()[j];
-                    auto &particle_pos = vertex_positions[particle_index];
+                auto particle_index = structure.get_particles_arr()[j];
+                auto &particle_pos = vertex_positions[particle_index];
 
-                    auto local_particle_pos = vertex_pos - particle_pos;
-                    auto local_length = length(local_particle_pos);
-                    if (local_length > 2 * particle_radius)
-                        continue;
-                    if (i == particle_index)
-                        continue;
+                auto local_particle_pos = vertex_pos - particle_pos;
+                auto local_length = length(local_particle_pos);
+                if (local_length > 2 * particle_radius)
+                    continue;
+                if (i == particle_index)
+                    continue;
 
-                    // particles are too close!
-                    // do some computation to push them apart!
+                // particles are too close!
+                // do some computation to push them apart!
 
-                    // normalize
-                    local_particle_pos /= local_length;
+                // normalize
+                local_particle_pos /= local_length;
 
-                    float adjustment = 2.0f * particle_radius - local_length;
+                float adjustment = 2.0f * particle_radius - local_length;
 
-                    if (!is_fixed(size, i))
-                        vertex_pos += (local_particle_pos * (0.5f * adjustment));
-                    if (!is_fixed(size, particle_index))
-                        particle_pos -= (local_particle_pos * (0.5f * adjustment));
-                }
+                if (!is_fixed(size, i))
+                    vertex_pos += (local_particle_pos * (0.5f * adjustment));
+                if (!is_fixed(size, particle_index))
+                    particle_pos -= (local_particle_pos * (0.5f * adjustment));
             }
         }
-    */
+    }
+
     // Update the velocity of each vertex by comparing the new position with the old position.
     for (size_t i = 0; i < vertex_positions.size(); i++)
     {
