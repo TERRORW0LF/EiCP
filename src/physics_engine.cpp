@@ -37,7 +37,6 @@ void PhysicsEngine::update()
 
     // Determine the time step since last update.
     delta_time = std::chrono::duration_cast<std::chrono::microseconds>(current_time - last_update).count() / 1000000.0f;
-    delta_time = 0.2f;
     last_update = current_time;
 
     std::vector<float3> vertex_positions = cloth->get_vertex_positions();
