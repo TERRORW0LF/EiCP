@@ -13,7 +13,7 @@ project(
 # If you set any CMAKE_ variables, that can go here.
 # (But usually don't do this, except maybe for C++ standard)
 set(CMAKE_CXX_STANDARD 20)
-set (CMAKE_CXX_FLAGS "-W -Wall -Wextra")
+set (CMAKE_CXX_FLAGS "-W -Wall -Wextra -O3")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 

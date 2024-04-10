@@ -216,8 +216,8 @@ bool PhysicsEngine::is_fixed(unsigned int size, unsigned int index) const
     }
     else if (mount == MountingType::TOP_ROW)
     {
-        int num_cols = std::sqrt(size);
-        return (index + 1) % num_cols == 0;
+        unsigned int num_cols = std::sqrt(size);
+        return index >= size - num_cols - 1;
     }
     else
         return false;

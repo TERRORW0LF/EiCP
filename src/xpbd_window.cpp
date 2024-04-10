@@ -271,10 +271,12 @@ void XPBDWindow::handle_key_input(GLFWwindow *window, int key, int scancode, int
             reset_cloth();
         }
         break;
-    case GLFW_KEY_7:
-    case GLFW_KEY_8:
-    case GLFW_KEY_9:
-    case GLFW_KEY_0:
+    case GLFW_KEY_F1:
+    case GLFW_KEY_F2:
+    case GLFW_KEY_F3:
+    case GLFW_KEY_F4:
+    case GLFW_KEY_F5:
+    case GLFW_KEY_F6:
         if (action == GLFW_PRESS)
         {
             mesh_id = key;
@@ -338,10 +340,12 @@ void XPBDWindow::print_help()
               << "   ---MOUNTING METHODS---" << std::endl;
 
     std::cout << "   ---MESH RESOLUTIONS---" << std::endl
-              << "7: 50x50 (no noise)" << std::endl
-              << "8: 10x10" << std::endl
-              << "9: 50x50" << std::endl
-              << "0: 100x100" << std::endl
+              << "F1: 10x10" << std::endl
+              << "F2: 25x25" << std::endl
+              << "F3: 50x50" << std::endl
+              << "F4: 50x50 (no noise)" << std::endl
+              << "F5: 100x100" << std::endl
+              << "F6: 200x200" << std::endl
               << "   ---MESH RESOLUTIONS---" << std::endl;
 
     std::cout << "==============================" << std::endl;
@@ -354,26 +358,30 @@ void XPBDWindow::reset_cloth()
 {
     // Create the cloth and give it a color.
     vec3 color = {1.0f, 0.0f, 0.0f};
-    if (mesh_id == GLFW_KEY_7)
+    switch (mesh_id)
     {
-        cloth = std::make_unique<ClothMesh>("assets/cloth_50_smooth.obj", color);
-    }
-    else if (mesh_id == GLFW_KEY_8)
-    {
+    case GLFW_KEY_F1:
         cloth = std::make_unique<ClothMesh>("assets/cloth_10.obj", color);
-    }
-    else if (mesh_id == GLFW_KEY_9)
-    {
+        break;
+    case GLFW_KEY_F2:
+        cloth = std::make_unique<ClothMesh>("assets/cloth_25.obj", color);
+        break;
+    case GLFW_KEY_F3:
         cloth = std::make_unique<ClothMesh>("assets/cloth_50.obj", color);
-    }
-    else if (mesh_id == GLFW_KEY_0)
-    {
+        break;
+    case GLFW_KEY_F4:
+        cloth = std::make_unique<ClothMesh>("assets/cloth_50_smooth.obj", color);
+        break;
+    case GLFW_KEY_F5:
         cloth = std::make_unique<ClothMesh>("assets/cloth_100.obj", color);
-    }
-    else
-    {
+        break;
+    case GLFW_KEY_F6:
+        cloth = std::make_unique<ClothMesh>("assets/cloth_200.obj", color);
+        break;
+    default:
         assert(false);
         std::exit(42);
+        break;
     }
 
     // Determine the model matrix for the cloth rotation and translation.
@@ -415,7 +423,7 @@ void XPBDWindow::initialize_members()
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     mounting_type = MountingType::CORNER_VERTEX;
-    mesh_id = GLFW_KEY_8;
+    mesh_id = GLFW_KEY_F3;
 
     // Set up the cloth in the scene.
     reset_cloth();
@@ -430,7 +438,7 @@ void XPBDWindow::initialize_members()
     shader = std::make_unique<Shader>("shaders/vertex.txt", "shaders/fragment.txt");
 
     // Create a camera at the given position.
-    camera = std::make_unique<Camera>(vec3{0.0f, 0.0f, 7.0f});
+    camera = std::make_unique<Camera>(vec3{0.0f, 0.0f, 1.0f});
 
     int width, height;
     glfwGetWindowSize(window, &width, &height);
