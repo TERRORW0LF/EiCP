@@ -74,7 +74,7 @@ void PhysicsEngine::update_step(std::vector<vec3> &vertex_positions, const Spati
 
         // reduce velocity by resistance to guarantee a steady state.
         // Also acts as air resistance.
-        velocity[i] *= 0.99f;
+        velocity[i] -= velocity[i] * 0.8f * step_time;
 
         // add gravity to velocity
         velocity[i] += gravity * step_time;
