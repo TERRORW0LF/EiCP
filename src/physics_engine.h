@@ -11,7 +11,8 @@ enum MountingType
 {
     CORNER_VERTEX = GLFW_KEY_1,
     TOP_ROW = GLFW_KEY_2,
-    MIDDLE_VERTEX = GLFW_KEY_3
+    MIDDLE_VERTEX = GLFW_KEY_3,
+    UNCONSTRAINED = GLFW_KEY_4
 };
 
 class PhysicsEngine

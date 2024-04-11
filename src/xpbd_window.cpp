@@ -265,6 +265,7 @@ void XPBDWindow::handle_key_input(GLFWwindow *window, int key, int scancode, int
     case GLFW_KEY_1:
     case GLFW_KEY_2:
     case GLFW_KEY_3:
+    case GLFW_KEY_4:
         if (action == GLFW_PRESS)
         {
             mounting_type = static_cast<MountingType>(key);
@@ -334,9 +335,10 @@ void XPBDWindow::print_help()
     std::cout << "ESC: free the mouse" << std::endl;
 
     std::cout << "   ---MOUNTING METHODS---" << std::endl
-              << "1: one corner" << std::endl
+              << "1: top right corner" << std::endl
               << "2: top row" << std::endl
-              << "3: a vertex within the cloth" << std::endl
+              << "3: middle vertex" << std::endl
+              << "4: none" << std::endl
               << "   ---MOUNTING METHODS---" << std::endl;
 
     std::cout << "   ---MESH RESOLUTIONS---" << std::endl
